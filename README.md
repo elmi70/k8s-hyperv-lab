@@ -163,27 +163,21 @@ vagrant box add ubuntu2604-hyperv .\output\ubuntu-26.04.1-hyperv.box
 cd ..
 ```
 
-3. Create the lab network from elevated PowerShell:
+   If a release already exists, you can skip the build and download the published box instead (see [GitHub validation and releases](docs/github-releases.md)).
 
-```powershell
-.\powershell\New-K8sLabNetwork.ps1
-```
-
-4. Create the VMs:
-
-```powershell
-cd vagrant
-vagrant up --provider=hyperv
-```
-
-5. Deploy the complete cluster from elevated PowerShell:
+3. Deploy the complete cluster from elevated PowerShell. This one command creates the lab network (`kube-lab-net`, 192.168.77.0/24), starts the VMs, attaches each VM's second NIC and assigns its static lab IP, then runs the Ansible playbooks:
 
 ```powershell
 .\powershell\Deploy-K8sLab.ps1
 ```
 
+Each VM has two NICs: the Hyper-V Default Switch (DHCP, used by Vagrant/SSH) and `kube-lab-net` (static `192.168.77.11-13`, used for Kubernetes). See [Networking](docs/networking.md).
+
+To prepare the nodes only and bootstrap the cluster yourself (for kubeadm practice or a clean "pre-cluster" snapshot), add `-StopBeforeInit`. It stops after containerd, kubeadm/kubelet/kubectl, crictl and the etcd tools are installed, before `kubeadm init`:
 
 ```powershell
+.\powershell\Deploy-K8sLab.ps1 -StopBeforeInit
+.\powershell\Save-K8sSnapshot.ps1
 ```
 
 The orchestrator starts the VMs, discovers SSH connection details from `vagrant ssh-config`, generates the Ansible inventory, configures all nodes, initializes kubeadm, joins workers, installs Calico, MetalLB, Metrics Server, Gateway API CRDs and Traefik, exports kubeconfig, and validates node readiness.
@@ -215,13 +209,15 @@ For the complete layer-by-layer acceptance runbook, including north-south traffi
 
 GitHub Actions uses `ubuntu-latest` only for source validation through `.github/workflows/validate.yml`. The Hyper-V Vagrant box is built locally on the Windows Hyper-V host.
 
-Publish a successfully built box from the repository root:
+Build and publish the box in one step from an elevated PowerShell 7 session at the repository root:
 
 ```powershell
-.\powershell\Publish-K8sBoxRelease.ps1 -Tag v1.0.0
+.\powershell\Publish-K8sBoxRelease.ps1 -Build -Register   # tag auto-increments
+.\powershell\Publish-K8sBoxRelease.ps1 -Build -Tag v1.2.0 # explicit tag
+.\powershell\Publish-K8sBoxRelease.ps1 -Tag v1.0.0        # publish an already-built box
 ```
 
-The helper creates `SHA256SUMS` and creates or updates a GitHub Release containing the box and checksum.
+The helper requires `gh auth login`, refuses boxes of 2 GiB or more (the GitHub Releases per-file limit), writes `SHA256SUMS`, and creates or updates a GitHub Release containing the box and checksum. Details: [GitHub validation and releases](docs/github-releases.md).
 
 ## Documentation
 

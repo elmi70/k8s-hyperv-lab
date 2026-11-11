@@ -3,6 +3,13 @@ Vagrant.configure("2") do |config|
   config.vm.boot_timeout = 900
   config.ssh.insert_key = false
 
+  # Management NIC: the Hyper-V Default Switch provides DHCP, which Vagrant needs
+  # to discover the guest IP and reach it over SSH. The Hyper-V provider cannot
+  # assign static IPs, so the fixed lab addresses live on a second NIC attached to
+  # kube-lab-net. That NIC is added by powershell/Add-K8sLabNic.ps1 and configured
+  # by the "lab-net" provisioner (run by Deploy-K8sLab.ps1 after the VMs are up).
+  mgmt_switch = ENV.fetch("K8S_LAB_MGMT_SWITCH", "Default Switch")
+
   nodes = {
     "control1" => { cpus: 2, memory: 4096, ip: "192.168.77.11" },
     "worker1"  => { cpus: 4, memory: 6144, ip: "192.168.77.12" },
@@ -12,10 +19,13 @@ Vagrant.configure("2") do |config|
   nodes.each do |name, spec|
     config.vm.define name do |node|
       node.vm.hostname = name
-      node.vm.network "public_network",
-        bridge: ENV.fetch("K8S_LAB_SWITCH", "kube-lab-net"),
-        ip: spec[:ip],
-        netmask: "255.255.255.0"
+      node.vm.network "public_network", bridge: mgmt_switch
+
+      node.vm.provision "lab-net",
+        type: "shell",
+        run: "never",
+        path: "scripts/configure-lab-nic.sh",
+        args: [spec[:ip]]
 
       node.vm.provider "hyperv" do |hv|
         hv.vmname = "k8s-lab-#{name}"
@@ -23,6 +33,10 @@ Vagrant.configure("2") do |config|
         hv.memory = spec[:memory]
         hv.maxmemory = spec[:memory]
         hv.enable_virtualization_extensions = true
+        # Keep checkpoints available for Save-K8sSnapshot.ps1 but stop Hyper-V
+        # from creating automatic ones that clutter the snapshot tree.
+        hv.enable_checkpoints = true
+        hv.enable_automatic_checkpoints = false
       end
     end
   end

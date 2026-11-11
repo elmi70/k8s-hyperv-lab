@@ -15,12 +15,20 @@
         kubectl apply -f
         https://github.com/kubernetes-sigs/gateway-api/releases/download/{{ gateway_api_version }}/standard-install.yaml
       changed_when: true
+      register: gateway_crds
+      retries: 5
+      delay: 10
+      until: gateway_crds.rc == 0
     - name: Download Helm
       ansible.builtin.get_url:
         url: "https://get.helm.sh/helm-{{ helm_version }}-linux-amd64.tar.gz"
         dest: "/tmp/helm-{{ helm_version }}.tar.gz"
         checksum: "sha256:{{ helm_sha256 }}"
         mode: '0644'
+      register: helm_download
+      retries: 5
+      delay: 10
+      until: helm_download is succeeded
     - name: Extract Helm
       ansible.builtin.unarchive:
         src: "/tmp/helm-{{ helm_version }}.tar.gz"

@@ -38,6 +38,11 @@
         name: [containerd, ca-certificates, curl, gpg]
         state: present
         update_cache: true
+        lock_timeout: 120
+      register: base_packages
+      retries: 5
+      delay: 10
+      until: base_packages is succeeded
     - name: Create containerd directory
       ansible.builtin.file: { path: /etc/containerd, state: directory, mode: '0755' }
     - name: Generate containerd configuration
@@ -52,7 +57,7 @@
       ansible.builtin.copy:
         dest: /etc/default/kubelet
         mode: '0644'
-        content: 'KUBELET_EXTRA_ARGS=--node-ip={{ lab_ip }}\n'
+        content: "KUBELET_EXTRA_ARGS=--node-ip={{ lab_ip }}\n"
     - name: Verify containerd uses systemd cgroups
       ansible.builtin.command: containerd config dump
       register: containerd_config_dump

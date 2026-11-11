@@ -10,6 +10,10 @@
         url: "{{ item.url }}"
         dest: "{{ item.dest }}"
         mode: '0644'
+      register: crictl_download
+      retries: 5
+      delay: 10
+      until: crictl_download is succeeded
       loop:
         - url: "https://github.com/kubernetes-sigs/cri-tools/releases/download/{{ crictl_version }}/crictl-{{ crictl_version }}-linux-amd64.tar.gz"
           dest: "/tmp/crictl-{{ crictl_version }}-linux-amd64.tar.gz"
@@ -54,6 +58,10 @@
         url: "https://github.com/etcd-io/etcd/releases/download/{{ etcd_tools_version }}/etcd-{{ etcd_tools_version }}-linux-amd64.tar.gz"
         dest: "/tmp/etcd-{{ etcd_tools_version }}-linux-amd64.tar.gz"
         mode: '0644'
+      register: etcd_download
+      retries: 5
+      delay: 10
+      until: etcd_download is succeeded
 
     - name: Extract etcd tools
       ansible.builtin.unarchive:

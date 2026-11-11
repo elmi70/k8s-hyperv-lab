@@ -9,8 +9,19 @@
     - name: Create apt keyring directory
       ansible.builtin.file: { path: /etc/apt/keyrings, state: directory, mode: '0755' }
     - name: Install Kubernetes repository key
-      ansible.builtin.shell: "curl -fsSL https://pkgs.k8s.io/core:/stable:/{{ kubernetes_minor }}/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg"
-      args: { creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg }
+      ansible.builtin.shell: |
+        set -o pipefail
+        rm -f /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+        curl --retry 3 --retry-delay 3 --retry-connrefused -fsSL https://pkgs.k8s.io/core:/stable:/{{ kubernetes_minor }}/deb/Release.key \
+          | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+        test -s /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+      args:
+        executable: /bin/bash
+        creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+      register: kubernetes_key
+      retries: 5
+      delay: 10
+      until: kubernetes_key.rc == 0
     - name: Configure Kubernetes repository
       ansible.builtin.copy:
         dest: /etc/apt/sources.list.d/kubernetes.list
@@ -19,6 +30,11 @@
     - name: Refresh apt metadata
       ansible.builtin.apt:
         update_cache: true
+        lock_timeout: 120
+      register: apt_refresh
+      retries: 5
+      delay: 10
+      until: apt_refresh is succeeded
 
     - name: Resolve exact Debian package version for Kubernetes patch
       ansible.builtin.shell: |
@@ -38,6 +54,11 @@
           - "kubectl={{ kubernetes_deb_version.stdout }}"
         state: present
         allow_downgrade: true
+        lock_timeout: 120
+      register: kubernetes_install
+      retries: 5
+      delay: 10
+      until: kubernetes_install is succeeded
     - name: Enable kubelet service
       ansible.builtin.systemd:
         name: kubelet

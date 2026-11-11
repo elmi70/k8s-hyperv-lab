@@ -31,6 +31,26 @@ Get-Service vmms
 Get-VMHost
 ```
 
+## VMs unreachable, or a node has no 192.168.77.x address
+
+Each VM has two NICs: the Default Switch (DHCP, used by Vagrant/SSH) and `kube-lab-net` (static lab IP). If a node is missing its lab address, or the switch was recreated, re-attach the NICs and re-apply the static IPs:
+
+```powershell
+.\powershell\Repair-K8sLabNetwork.ps1
+cd vagrant
+vagrant provision --provision-with lab-net
+```
+
+If `New-K8sLabNetwork.ps1` reports that `192.168.77.0/24` is already routed through another interface or NAT, another tool (Docker, WSL, a VPN or another lab) owns the subnet. Remove it or change the prefix.
+
+## Box check fails or the box is missing
+
+`Deploy-K8sLab.ps1` requires the `ubuntu2604-hyperv` box. Build it with `.\powershell\Publish-K8sBoxRelease.ps1 -Build -Register` or follow [Image build](image-build.md). Use `-SkipBoxCheck` only if the box is registered under another name.
+
+## Package or download failures during deployment
+
+The playbooks retry apt and download tasks five times. If a task still fails, check internet access from the nodes (`vagrant ssh control1`, then `curl -I https://pkgs.k8s.io`) and re-run `Deploy-K8sLab.ps1`; the playbooks are safe to re-run.
+
 ## Layered diagnosis
 
 ```mermaid
