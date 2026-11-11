@@ -10,7 +10,7 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: hashicorp/setup-packer@v3
         with: { version: latest }
       - name: Packer init
@@ -23,7 +23,7 @@ jobs:
         working-directory: packer
         run: packer validate .
       - name: Install validation tools
-        run: python -m pip install ansible-core yamllint
+        run: python -m pip install ansible-core yamllint shellcheck-py actionlint-py
       - name: YAML lint
         run: yamllint -c .yamllint.yml .
       - name: Ansible syntax
@@ -38,6 +38,18 @@ jobs:
           ansible-playbook --syntax-check -i ansible/inventory/hosts.example.yml ansible/playbooks/install-metrics-server.yml
           ansible-playbook --syntax-check -i ansible/inventory/hosts.example.yml ansible/playbooks/install-traefik.yml
           ansible-playbook --syntax-check -i ansible/inventory/hosts.example.yml ansible/playbooks/validate-cluster.yml
+      - name: Render Jinja templates
+        run: |
+          ansible control1 -i ansible/inventory/hosts.example.yml -c local -m template \
+            -a "src=ansible/templates/kubeadm-config.yaml.j2 dest=${RUNNER_TEMP}/kubeadm-config.yaml"
+          cat "${RUNNER_TEMP}/kubeadm-config.yaml"
+          yamllint -d relaxed "${RUNNER_TEMP}/kubeadm-config.yaml"
+      - name: Shell script lint
+        run: shellcheck vagrant/scripts/*.sh packer/scripts/*.sh
+      - name: Vagrantfile syntax
+        run: ruby -c vagrant/Vagrantfile
+      - name: Workflow lint
+        run: actionlint
       - name: Install PSScriptAnalyzer
         shell: pwsh
         run: Install-Module PSScriptAnalyzer -Scope CurrentUser -Force

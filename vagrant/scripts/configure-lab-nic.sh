@@ -8,9 +8,16 @@ PREFIX=24
 
 default_nic() { ip -4 route show default | awk '{print $5; exit}'; }
 lab_nic() {
-  local def
+  local def n
   def="$(default_nic)"
-  ls /sys/class/net | grep -v -e '^lo$' -e "^${def}$" | head -n1 || true
+  for n in /sys/class/net/*; do
+    n="${n##*/}"
+    if [ "$n" != "lo" ] && [ "$n" != "$def" ]; then
+      echo "$n"
+      return 0
+    fi
+  done
+  return 0
 }
 
 # The NIC is hot-added by Add-K8sLabNic.ps1; give the guest a moment to see it.
