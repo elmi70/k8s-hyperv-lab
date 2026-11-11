@@ -156,7 +156,7 @@ Normal deployment is started from a single **elevated PowerShell 7** terminal on
 ## Quick start
 
 1. Complete the prerequisite checklist above.
-2. Build and register the pinned Ubuntu 26.04.1 LTS box:
+2. Build and register the pinned Ubuntu 26.04.1 LTS box (we build our own instead of using a public registry box because HCP Vagrant is being retired; see [Why we build our own box](docs/image-build.md#why-we-build-our-own-box)):
 
 ```powershell
 cd packer
