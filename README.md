@@ -58,13 +58,32 @@ The automated deployment also installs:
 
 ## VM sizing
 
-| Node | Role | vCPU | RAM |
+| Node | Role | vCPU | RAM (default) |
 |---|---|---:|---:|
 | `control1` | Control plane | 2 | 4 GiB |
 | `worker1` | Worker | 4 | 6 GiB |
 | `worker2` | Worker | 4 | 6 GiB |
 
-The default topology consumes 16 GiB of guest RAM, leaving roughly half of a 32 GiB development laptop available to Windows, WSL and tooling.
+The default topology consumes 16 GiB of guest RAM, which leaves roughly half of a 32 GiB development laptop for Windows, WSL and tooling. Hyper-V needs each VM's startup memory free when it boots, so close memory-hungry apps first.
+
+### Low-memory laptops
+
+If less than about 16 GiB is free, set smaller VM sizes (in MiB) before deploying. The Vagrantfile reads these variables and rejects values below 2048:
+
+```powershell
+$env:K8S_LAB_CONTROL_MEMORY_MB = "4096"   # default 4096
+$env:K8S_LAB_WORKER_MEMORY_MB  = "4096"   # default 6144 (12 GiB total with these values)
+.\powershell\Deploy-K8sLab.ps1
+```
+
+Set the same values in every session that runs `vagrant up`. Changing them for existing VMs requires recreating them (`Remove-K8sLab.ps1`, then `Deploy-K8sLab.ps1`). WSL 2 can also claim up to half of your RAM while Ansible runs; cap it by creating `%UserProfile%\.wslconfig` with:
+
+```ini
+[wsl2]
+memory=4GB
+```
+
+then run `wsl --shutdown` to apply it. These sizes are estimates for a lab, not measured minimums.
 
 ## Prerequisite checklist
 

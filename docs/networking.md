@@ -28,7 +28,7 @@ The Vagrant Hyper-V provider cannot assign static IPs, so `Deploy-K8sLab.ps1` do
 1. `powershell/Add-K8sLabNic.ps1` hot-adds the `kube-lab` NIC on `kube-lab-net` to each VM.
 2. `vagrant provision --provision-with lab-net` runs `vagrant/scripts/configure-lab-nic.sh`, which writes a netplan file matching the NIC by MAC address.
 
-Environment variables read by the Vagrantfile: `K8S_LAB_MGMT_SWITCH` (management switch, default `Default Switch`) and `K8S_LAB_BOX` (box name, default `ubuntu2604-hyperv`).
+Environment variables read by the Vagrantfile: `K8S_LAB_MGMT_SWITCH` (management switch, default `Default Switch`), `K8S_LAB_BOX` (box name, default `ubuntu2604-hyperv`), and `K8S_LAB_CONTROL_MEMORY_MB` / `K8S_LAB_WORKER_MEMORY_MB` (VM memory in MiB, defaults 4096 and 6144).
 
 If the lab NICs get disconnected or the switch is recreated, run `powershell/Repair-K8sLabNetwork.ps1`.
 

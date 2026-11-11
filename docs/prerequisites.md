@@ -6,7 +6,7 @@ Clone to a plain local path such as `C:\src\k8s-hyperv-lab`, **not** into OneDri
 
 ## Resources
 
-- **RAM:** the three VMs use 16 GiB (see the sizing table in the README).
+- **RAM:** the three VMs use 16 GiB by default (see the sizing table in the README). If your free memory is lower, shrink them with `K8S_LAB_CONTROL_MEMORY_MB` and `K8S_LAB_WORKER_MEMORY_MB`; see "Low-memory laptops" in the README. Check free memory with `systeminfo | Select-String "Memory"`.
 - **Disk:** the Packer image disk is 32 GiB, and the VMs and checkpoints add more. Leave well over 100 GB free (this is a rough estimate, not a measured figure).
 
 ## Hyper-V

@@ -15,10 +15,21 @@ Vagrant.configure("2") do |config|
   # by the "lab-net" provisioner (run by Deploy-K8sLab.ps1 after the VMs are up).
   mgmt_switch = ENV.fetch("K8S_LAB_MGMT_SWITCH", "Default Switch")
 
+  # VM memory in MiB. Defaults total 16 GiB; lower them on machines with less free RAM, e.g.
+  #   $env:K8S_LAB_CONTROL_MEMORY_MB = "4096"; $env:K8S_LAB_WORKER_MEMORY_MB = "4096"
+  # kubeadm needs at least ~2 GiB on the control plane, so values below 2048 are rejected.
+  mem = lambda do |var, default|
+    value = Integer(ENV.fetch(var, default.to_s))
+    raise "#{var} must be at least 2048 (MiB), got #{value}" if value < 2048
+    value
+  end
+  control_memory = mem.call("K8S_LAB_CONTROL_MEMORY_MB", 4096)
+  worker_memory  = mem.call("K8S_LAB_WORKER_MEMORY_MB", 6144)
+
   nodes = {
-    "control1" => { cpus: 2, memory: 4096, ip: "192.168.77.11" },
-    "worker1"  => { cpus: 4, memory: 6144, ip: "192.168.77.12" },
-    "worker2"  => { cpus: 4, memory: 6144, ip: "192.168.77.13" }
+    "control1" => { cpus: 2, memory: control_memory, ip: "192.168.77.11" },
+    "worker1"  => { cpus: 4, memory: worker_memory,  ip: "192.168.77.12" },
+    "worker2"  => { cpus: 4, memory: worker_memory,  ip: "192.168.77.13" }
   }
 
   nodes.each do |name, spec|
