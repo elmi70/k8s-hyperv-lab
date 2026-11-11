@@ -6,8 +6,8 @@ $ErrorActionPreference='Stop'
 $root=Split-Path $PSScriptRoot -Parent
 $vagrantDir=Join-Path $root 'vagrant'
 $labIps=@{control1='192.168.77.11';worker1='192.168.77.12';worker2='192.168.77.13'}
-function Convert-ToWslPath([string]$Path) {
-  $result = wsl.exe -d $WslDistribution -- wslpath -a $Path
+function Convert-ToWslPath([string]$Path, [string]$Distribution) {
+  $result = wsl.exe -d $Distribution -- wslpath -a $Path
   if($LASTEXITCODE -ne 0){throw "Could not convert path for WSL: $Path"}
   return ($result | Select-Object -First 1).Trim()
 }
@@ -21,7 +21,7 @@ try {
     foreach($line in $raw){if($line -match '^\s*(\S+)\s+(.+)$'){$kv[$matches[1]]=$matches[2].Trim('"')}}
     $hosts[$node]=@{
       HostName=$kv['HostName']; Port=$kv['Port']; User=$kv['User']
-      IdentityFile=(Convert-ToWslPath $kv['IdentityFile']); LabIp=$labIps[$node]
+      IdentityFile=(Convert-ToWslPath $kv['IdentityFile'] $WslDistribution); LabIp=$labIps[$node]
     }
   }
 } finally { Pop-Location }

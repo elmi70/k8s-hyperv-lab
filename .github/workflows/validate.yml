@@ -44,6 +44,6 @@ jobs:
       - name: PowerShell analysis
         shell: pwsh
         run: |
-          $results=Invoke-ScriptAnalyzer -Path ./powershell -Recurse -Severity Error,Warning
+          $results=Invoke-ScriptAnalyzer -Path ./powershell -Recurse -Settings ./PSScriptAnalyzerSettings.psd1
           $results | Format-Table -AutoSize
           if($results){throw "PSScriptAnalyzer found $($results.Count) issue(s)."}
