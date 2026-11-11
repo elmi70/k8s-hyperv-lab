@@ -2,9 +2,6 @@
 - name: Install Kubernetes packages
   hosts: k8s_nodes
   become: true
-  vars:
-    kubernetes_minor: "v1.37"
-    kubernetes_version: "1.37.1"
   tasks:
     - name: Create apt keyring directory
       ansible.builtin.file: { path: /etc/apt/keyrings, state: directory, mode: '0755' }

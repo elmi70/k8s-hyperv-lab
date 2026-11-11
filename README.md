@@ -44,7 +44,7 @@ flowchart TB
 
 ## Kubernetes version
 
-The lab targets **Kubernetes 1.37**. Kubernetes packages are installed from the dedicated `pkgs.k8s.io/core:/stable:/v1.37/deb/` repository. The automation resolves the exact Debian package build for Kubernetes **1.37.1**, installs that same package version for `kubeadm`, `kubelet`, and `kubectl`, explicitly enables `kubelet`, and then holds all three packages to keep normal OS upgrades from changing Kubernetes versions. The kubeadm configuration currently pins the control plane to **v1.37.1**.
+The lab targets **Kubernetes 1.37**. Kubernetes packages are installed from the dedicated `pkgs.k8s.io/core:/stable:/v1.37/deb/` repository. The automation resolves the exact Debian package build for Kubernetes **1.37.1**, installs that same package version for `kubeadm`, `kubelet`, and `kubectl`, explicitly enables `kubelet`, and then holds all three packages to keep normal OS upgrades from changing Kubernetes versions. The kubeadm configuration pins the control plane to the same version. All component versions (Kubernetes, crictl, etcd tools, Calico, MetalLB, Metrics Server, Gateway API, Traefik, Helm) and the pod/service CIDRs are defined once in [`ansible/inventory/group_vars/all.yml`](ansible/inventory/group_vars/all.yml); change them there. The Calico pool in `kubernetes/calico/installation.yaml` must match `pod_cidr`, and the CNI playbook fails early if it does not.
 
 
 ### Node administration tools
@@ -243,7 +243,6 @@ k8s-hyperv-lab/
 ├── .github/workflows/validate.yml
 ├── ansible/
 ├── docs/
-├── kubeadm/
 ├── kubernetes/
 │   └── calico/
 ├── packer/

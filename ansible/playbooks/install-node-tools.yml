@@ -2,8 +2,6 @@
 - name: Install CRI troubleshooting tools on all Kubernetes nodes
   hosts: k8s_nodes
   become: true
-  vars:
-    crictl_version: "v1.37.0"
   tasks:
     - name: Download crictl archive and checksum
       ansible.builtin.get_url:
@@ -50,8 +48,6 @@
 - name: Install etcd administration clients on the control plane
   hosts: control_plane
   become: true
-  vars:
-    etcd_tools_version: "v3.7.3"
   tasks:
     - name: Download etcd release archive
       ansible.builtin.get_url:

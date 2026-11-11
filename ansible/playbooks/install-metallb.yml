@@ -2,8 +2,6 @@
 - name: Install MetalLB
   hosts: control_plane
   become: true
-  vars:
-    metallb_version: "v0.16.2"
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
   tasks:

@@ -26,7 +26,7 @@ The generated `ansible/inventory/hosts.yml` is local state and is ignored by Git
 
 ## Version and upgrade policy
 
-The lab targets Kubernetes **1.37.1**. The package playbook selects the exact `1.37.1-*` Debian package build exposed by the v1.37 `pkgs.k8s.io` repository, installs it consistently for `kubeadm`, `kubelet`, and `kubectl`, enables the kubelet service, and places all three packages on hold. Kubernetes upgrades must be performed deliberately with the kubeadm upgrade workflow rather than through an ordinary Ubuntu upgrade.
+The lab targets Kubernetes **1.37.1**, set once as `kubernetes_version` in `ansible/inventory/group_vars/all.yml` (the apt repository minor and the kubeadm `kubernetesVersion` are derived from it). The package playbook selects the exact `1.37.1-*` Debian package build exposed by the v1.37 `pkgs.k8s.io` repository, installs it consistently for `kubeadm`, `kubelet`, and `kubectl`, enables the kubelet service, and places all three packages on hold. Kubernetes upgrades must be performed deliberately with the kubeadm upgrade workflow rather than through an ordinary Ubuntu upgrade.
 
 ## Node identity preflight
 

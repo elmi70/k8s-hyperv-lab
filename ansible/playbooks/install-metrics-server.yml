@@ -2,8 +2,6 @@
 - name: Install Metrics Server
   hosts: control_plane
   become: true
-  vars:
-    metrics_server_version: "v0.9.1"
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
   tasks:

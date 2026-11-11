@@ -2,8 +2,6 @@
 - name: Initialize the Kubernetes control plane
   hosts: control_plane
   become: true
-  vars:
-    kubernetes_version: "v1.37.1"
   tasks:
     - name: Render kubeadm configuration
       ansible.builtin.template:
