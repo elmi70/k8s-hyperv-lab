@@ -1,6 +1,6 @@
 # k8s-hyperv-lab
 
-Automated 3-node Kubernetes 1.37 lab on Windows Hyper-V with Packer, Vagrant, Ansible, kubeadm, Calico, MetalLB, Metrics Server, and Traefik Gateway API.
+Automated 3-node Kubernetes 1.37 lab on Windows Hyper-V with Packer, Vagrant, Ansible, kubeadm, Calico, MetalLB, Metrics Server, local-path storage, and Traefik Gateway API.
 
 ## How it works
 
@@ -40,11 +40,12 @@ flowchart TB
   CNI --> LB[MetalLB]
   LB --> TR[Traefik Gateway API]
   K --> MS[Metrics Server]
+  K --> ST[local-path storage<br/>default StorageClass]
 ```
 
 ## Kubernetes version
 
-The lab targets **Kubernetes 1.37**. Kubernetes packages are installed from the dedicated `pkgs.k8s.io/core:/stable:/v1.37/deb/` repository. The automation resolves the exact Debian package build for Kubernetes **1.37.1**, installs that same package version for `kubeadm`, `kubelet`, and `kubectl`, explicitly enables `kubelet`, and then holds all three packages to keep normal OS upgrades from changing Kubernetes versions. The kubeadm configuration pins the control plane to the same version. All component versions (Kubernetes, crictl, etcd tools, Calico, MetalLB, Metrics Server, Gateway API, Traefik, Helm) and the pod/service CIDRs are defined once in [`ansible/inventory/group_vars/all.yml`](ansible/inventory/group_vars/all.yml); change them there. The Calico pool in `kubernetes/calico/installation.yaml` must match `pod_cidr`, and the CNI playbook fails early if it does not.
+The lab targets **Kubernetes 1.37**. Kubernetes packages are installed from the dedicated `pkgs.k8s.io/core:/stable:/v1.37/deb/` repository. The automation resolves the exact Debian package build for Kubernetes **1.37.1**, installs that same package version for `kubeadm`, `kubelet`, and `kubectl`, explicitly enables `kubelet`, and then holds all three packages to keep normal OS upgrades from changing Kubernetes versions. The kubeadm configuration pins the control plane to the same version. All component versions (Kubernetes, crictl, etcd tools, Calico, MetalLB, Metrics Server, local-path-provisioner, Gateway API, Traefik, Helm) and the pod/service CIDRs are defined once in [`ansible/inventory/group_vars/all.yml`](ansible/inventory/group_vars/all.yml); change them there. The Calico pool in `kubernetes/calico/installation.yaml` must match `pod_cidr`, and the CNI playbook fails early if it does not.
 
 
 ### Node administration tools
@@ -195,7 +196,7 @@ cd ..
 .\powershell\Deploy-K8sLab.ps1
 ```
 
-The orchestrator creates the lab network (`kube-lab-net`, 192.168.77.0/24), starts the VMs, attaches each VM's second NIC and assigns its static lab IP, discovers SSH connection details from `vagrant ssh-config`, generates the Ansible inventory, configures all nodes, initializes kubeadm, joins workers, installs Calico, MetalLB, Metrics Server, Gateway API CRDs and Traefik, exports kubeconfig, and validates node readiness.
+The orchestrator creates the lab network (`kube-lab-net`, 192.168.77.0/24), starts the VMs, attaches each VM's second NIC and assigns its static lab IP, discovers SSH connection details from `vagrant ssh-config`, generates the Ansible inventory, configures all nodes, initializes kubeadm, joins workers, installs Calico, MetalLB, Metrics Server, local-path storage, Gateway API CRDs and Traefik, exports kubeconfig, and validates node readiness.
 
 Each VM has two NICs: the Hyper-V Default Switch (DHCP, used by Vagrant/SSH) and `kube-lab-net` (static `192.168.77.11-13`, used for Kubernetes). See [Networking](docs/networking.md).
 
@@ -217,6 +218,7 @@ kubectl get nodes -o wide
 kubectl get pods -A
 kubectl get svc -A
 kubectl top nodes
+kubectl get storageclass
 kubectl get gatewayclass
 ```
 
@@ -226,6 +228,7 @@ Expected high-level state:
 - [ ] Calico workloads are healthy.
 - [ ] MetalLB is advertising the `192.168.77.200-220` pool.
 - [ ] `kubectl top nodes` returns resource metrics.
+- [ ] `local-path` is the default StorageClass; PVCs bind once a pod uses them ([Storage](docs/storage.md)).
 - [ ] Traefik and the Gateway API are available.
 - [ ] A Traefik `LoadBalancer` Service receives a MetalLB external IP.
 
@@ -254,6 +257,7 @@ The helper requires `gh auth login`, refuses boxes of 2 GiB or more (the GitHub 
 - [Networking](docs/networking.md)
 - [Kubernetes deployment](docs/kubernetes.md)
 - [Cluster networking and traffic](docs/networking-stack.md)
+- [Storage (PVCs)](docs/storage.md)
 - [Snapshots](docs/snapshots.md)
 - [Troubleshooting](docs/troubleshooting.md)
 - [Post-deployment validation](docs/post-deployment-validation.md)

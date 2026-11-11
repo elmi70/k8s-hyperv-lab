@@ -17,6 +17,62 @@
     - name: Verify Traefik GatewayClass
       ansible.builtin.command: kubectl get gatewayclass
       changed_when: false
+    - name: Verify the default StorageClass
+      ansible.builtin.command: kubectl get storageclass
+      register: default_storageclass
+      changed_when: false
+      failed_when: "'local-path (default)' not in default_storageclass.stdout"
+    - name: Verify dynamic storage with a test PVC and pod
+      block:
+        - name: Create test PVC and pod
+          ansible.builtin.command: kubectl apply -f -
+          args:
+            stdin: |
+              apiVersion: v1
+              kind: PersistentVolumeClaim
+              metadata:
+                name: lab-storage-test
+                namespace: default
+              spec:
+                accessModes: [ReadWriteOnce]
+                resources:
+                  requests:
+                    storage: 64Mi
+              ---
+              apiVersion: v1
+              kind: Pod
+              metadata:
+                name: lab-storage-test
+                namespace: default
+              spec:
+                restartPolicy: Never
+                containers:
+                  - name: writer
+                    image: docker.io/library/busybox:1.36
+                    command: ["sh", "-c", "echo ok > /data/test && sleep 600"]
+                    volumeMounts:
+                      - name: data
+                        mountPath: /data
+                volumes:
+                  - name: data
+                    persistentVolumeClaim:
+                      claimName: lab-storage-test
+          changed_when: true
+        - name: Wait for the test pod to run with its volume
+          ansible.builtin.command: kubectl -n default wait --for=condition=Ready pod/lab-storage-test --timeout=3m
+          changed_when: false
+        - name: Read the PVC phase
+          ansible.builtin.command: kubectl -n default get pvc lab-storage-test -o jsonpath={.status.phase}
+          register: storage_test_pvc
+          changed_when: false
+        - name: Require the test PVC to be Bound
+          ansible.builtin.assert:
+            that: storage_test_pvc.stdout == 'Bound'
+            fail_msg: "Test PVC is {{ storage_test_pvc.stdout }}, expected Bound"
+      always:
+        - name: Remove test pod and PVC
+          ansible.builtin.command: kubectl -n default delete pod/lab-storage-test pvc/lab-storage-test --ignore-not-found --timeout=2m
+          changed_when: false
     - name: Show nodes
       ansible.builtin.command: kubectl get nodes -o wide
       register: nodes

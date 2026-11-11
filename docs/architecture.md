@@ -16,6 +16,7 @@ flowchart TB
  C --> M[MetalLB]
  M --> T[Traefik Gateway API]
  K --> MS[Metrics Server]
+ K --> ST[local-path storage]
 ```
 
 Component versions are defined once in `ansible/inventory/group_vars/all.yml`. See [Networking](networking.md) for the two-NIC network layout.

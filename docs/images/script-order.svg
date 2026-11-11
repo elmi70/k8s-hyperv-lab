@@ -133,9 +133,9 @@
 <rect class="glow pulse" x="294" y="440" width="240" height="110" rx="12" fill="#39c5bb" style="animation-delay:14.4s"/>
 <circle cx="318" cy="466" r="12" fill="#39c5bb"/>
 <text class="num" x="318" y="471" text-anchor="middle">10</text>
-<text class="h" x="338" y="471">Playbooks 8-10</text>
-<text class="s" x="310" y="504">metrics-server, traefik,</text>
-<text class="s" x="310" y="524">validate-cluster</text>
+<text class="h" x="338" y="471">Playbooks 8-11</text>
+<text class="s" x="310" y="504">metrics-server, local-path,</text>
+<text class="s" x="310" y="524">traefik, validate-cluster</text>
 </g>
 <g>
 <rect class="base" x="558" y="440" width="240" height="110" rx="12" stroke="#58a6ff"/>

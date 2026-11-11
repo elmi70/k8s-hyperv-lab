@@ -36,6 +36,7 @@ jobs:
           ansible-playbook --syntax-check -i ansible/inventory/hosts.example.yml ansible/playbooks/install-cni.yml
           ansible-playbook --syntax-check -i ansible/inventory/hosts.example.yml ansible/playbooks/install-metallb.yml
           ansible-playbook --syntax-check -i ansible/inventory/hosts.example.yml ansible/playbooks/install-metrics-server.yml
+          ansible-playbook --syntax-check -i ansible/inventory/hosts.example.yml ansible/playbooks/install-local-path.yml
           ansible-playbook --syntax-check -i ansible/inventory/hosts.example.yml ansible/playbooks/install-traefik.yml
           ansible-playbook --syntax-check -i ansible/inventory/hosts.example.yml ansible/playbooks/validate-cluster.yml
       - name: Render Jinja templates

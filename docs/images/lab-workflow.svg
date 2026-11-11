@@ -133,8 +133,8 @@
 <circle cx="309" cy="466" r="12" fill="#3fb950"/>
 <text class="num" x="309" y="471" text-anchor="middle">10</text>
 <text class="h" x="329" y="471">Cluster add-ons</text>
-<text class="s" x="301" y="504">Calico, MetalLB, Traefik</text>
-<text class="s" x="301" y="524">Metrics Server, Gateway API</text>
+<text class="s" x="301" y="504">Calico, MetalLB, Metrics Server</text>
+<text class="s" x="301" y="524">Traefik/Gateway API, local-path</text>
 </g>
 <g>
 <rect class="base" x="535" y="440" width="220" height="110" rx="12" stroke="#3fb950"/>

@@ -22,7 +22,7 @@ You do not run these yourself, but this is the order they execute in:
 3. `Add-K8sLabNic.ps1`: adds the second NIC on `kube-lab-net`.
 4. `vagrant provision --provision-with lab-net`: assigns the static `192.168.77.x` addresses.
 5. `New-K8sAnsibleInventory.ps1`: builds the Ansible inventory from `vagrant ssh-config`.
-6. Ansible playbooks, in this order: `preflight`, `prerequisites`, `kubernetes-packages`, `install-node-tools`, `bootstrap-cluster`, `install-cni`, `install-metallb`, `install-metrics-server`, `install-traefik`, `validate-cluster`.
+6. Ansible playbooks, in this order: `preflight`, `prerequisites`, `kubernetes-packages`, `install-node-tools`, `bootstrap-cluster`, `install-cni`, `install-metallb`, `install-metrics-server`, `install-local-path`, `install-traefik`, `validate-cluster`.
 7. Copies the kubeconfig to `~/.kube/config`.
 
 ## Day to day

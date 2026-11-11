@@ -34,6 +34,7 @@ $playbooks=@(
   'install-cni.yml',
   'install-metallb.yml',
   'install-metrics-server.yml',
+  'install-local-path.yml',
   'install-traefik.yml',
   'validate-cluster.yml'
 )

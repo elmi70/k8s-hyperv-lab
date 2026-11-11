@@ -65,6 +65,19 @@ Verify:
 
 > Lab-only security note: Metrics Server uses `--kubelet-insecure-tls` in this disposable environment. Do not reuse this setting for production.
 
+## 4a. Persistent storage
+
+```powershell
+kubectl get storageclass
+kubectl -n local-path-storage get pods
+```
+
+Verify:
+
+- [ ] `local-path (default)` is listed as a StorageClass.
+- [ ] The `local-path-provisioner` pod is `Running`.
+- [ ] A PVC used by a pod becomes `Bound` (the automated validation creates and removes `lab-storage-test` to prove this). See [Storage](storage.md) for an example.
+
 ## 5. Gateway API
 
 ```powershell
@@ -169,6 +182,7 @@ ansible-playbook \
 - [ ] MetalLB is healthy and the L2 pool is configured.
 - [ ] Metrics Server is healthy.
 - [ ] `kubectl top nodes` works.
+- [ ] `local-path` is the default StorageClass and a test PVC binds.
 - [ ] Gateway API CRDs are installed.
 - [ ] Traefik is healthy.
 - [ ] Traefik receives a MetalLB address.

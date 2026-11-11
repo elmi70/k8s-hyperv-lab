@@ -18,6 +18,7 @@ flowchart TB
 - **Calico 3.33.0**: CNI, pod networking and NetworkPolicy.
 - **MetalLB 0.16.2**: L2 LoadBalancer IP allocation/advertisement from `192.168.77.200-220`.
 - **Metrics Server 0.9.1**: resource metrics for `kubectl top` and CPU/memory HPA use cases.
+- **local-path-provisioner 0.0.37**: default StorageClass for node-local PVCs (see [Storage](storage.md)).
 - **Gateway API 1.6.3 Standard CRDs**: API contract used by Traefik.
 - **Traefik Helm chart 42.3.1 / Traefik Proxy 3.7.17**: north-south Gateway API controller.
 
