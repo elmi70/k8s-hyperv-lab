@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1092 646" width="1092" height="646" role="img" aria-labelledby="t d">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1092 666" width="1092" height="666" role="img" aria-labelledby="t d">
 <title id="t">k8s-hyperv-lab script order</title>
-<desc id="d">The order to run the PowerShell scripts: Test-K8sLabReady, Publish-K8sBoxRelease, then Deploy-K8sLab, which runs the network, Vagrant, NIC, inventory and Ansible playbook steps, then verify with kubectl. Day-to-day scripts are listed below.</desc>
+<desc id="d">The order to run the PowerShell scripts: Test-K8sLabReady, get the box (build with Packer or download a release), then Deploy-K8sLab, which runs the network, Vagrant, NIC, inventory and Ansible playbook steps, then verify with kubectl. Day-to-day scripts are listed below.</desc>
 <style>
 .bg { fill: #0d1117; }
 .title { font: 700 20px 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; fill: #f0f6fc; }
@@ -27,7 +27,7 @@
   .flow, .pulse { animation: none; }
 }
 </style>
-<rect class="bg" width="1092" height="646" rx="14"/>
+<rect class="bg" width="1092" height="666" rx="14"/>
 <text class="title" x="30" y="42">k8s-hyperv-lab: which script to run, in order</text>
 <rect x="30" y="58" width="12" height="12" rx="3" fill="#58a6ff"/>
 <text class="legend" x="48" y="69">You run</text>
@@ -61,9 +61,9 @@
 <rect class="glow pulse" x="294" y="100" width="240" height="110" rx="12" fill="#58a6ff" style="animation-delay:1.6s"/>
 <circle cx="318" cy="126" r="12" fill="#58a6ff"/>
 <text class="num" x="318" y="131" text-anchor="middle">2</text>
-<text class="h" x="338" y="131">Publish-K8sBoxRelease</text>
-<text class="s" x="310" y="164">-Build -Register: Packer build,</text>
-<text class="s" x="310" y="184">release + vagrant box add</text>
+<text class="h" x="338" y="131">Get the box</text>
+<text class="s" x="310" y="164">packer build -force, or</text>
+<text class="s" x="310" y="184">gh release download; box add</text>
 </g>
 <g>
 <rect class="base" x="558" y="100" width="240" height="110" rx="12" stroke="#58a6ff"/>
@@ -146,7 +146,8 @@
 <text class="s" x="574" y="504">you verify: all 3 Ready</text>
 <text class="s" x="574" y="524">kubeconfig in ~/.kube/config</text>
 </g>
-<rect class="strip" x="30" y="570" width="1032" height="56" rx="10"/>
+<rect class="strip" x="30" y="570" width="1032" height="76" rx="10"/>
 <text class="striph" x="46" y="592">Day to day</text>
 <text class="s" x="46" y="612">Stop-K8sLab · Start-K8sLab · Get-K8sLabStatus · Save/Get/Restore/Remove-K8sSnapshot -Name &lt;n&gt; · Repair-K8sLabNetwork · Remove-K8sLab</text>
+<text class="s" x="46" y="632">Maintainers (optional): Publish-K8sBoxRelease -Build -Register builds the box, publishes a GitHub Release and registers it</text>
 </svg>

@@ -65,7 +65,7 @@ The automated deployment also installs:
 | `worker1` | Worker | 4 | 6 GiB |
 | `worker2` | Worker | 4 | 6 GiB |
 
-The default topology consumes 16 GiB of guest RAM, which leaves roughly half of a 32 GiB development laptop for Windows, WSL and tooling. Hyper-V needs each VM's startup memory free when it boots, so close memory-hungry apps first.
+The default topology consumes 16 GiB of guest RAM, which leaves roughly half of a 32 GiB development laptop for Windows, WSL and tooling. Memory is fixed per VM (dynamic memory is disabled), so Hyper-V needs all of it free when the VMs boot; close memory-hungry apps first.
 
 ### Low-memory laptops
 
@@ -175,7 +175,7 @@ Normal deployment is started from a single **elevated PowerShell 7** terminal on
 
 ## Quick start
 
-1. Complete the prerequisite checklist above.
+1. Complete the prerequisite checklist above. Optionally run `.\powershell\Test-K8sLabReady.ps1` (elevated) to check the host.
 2. Build and register the pinned Ubuntu 26.04.1 LTS box (we build our own instead of using a public registry box because HCP Vagrant is being retired; see [Why we build our own box](docs/image-build.md#why-we-build-our-own-box)):
 
 ```powershell
@@ -236,9 +236,9 @@ For the complete layer-by-layer acceptance runbook, including north-south traffi
 
 ## CI and releases
 
-GitHub Actions uses `ubuntu-latest` only for source validation through `.github/workflows/validate.yml`. The Hyper-V Vagrant box is built locally on the Windows Hyper-V host.
+GitHub Actions uses `ubuntu-latest` only for source validation through `.github/workflows/validate.yml` (Packer fmt/validate, yamllint, Ansible syntax, template rendering, shellcheck, Vagrantfile syntax, actionlint and PSScriptAnalyzer). The Hyper-V Vagrant box is built locally on the Windows Hyper-V host. See [GitHub validation and releases](docs/github-releases.md) for details.
 
-Build and publish the box in one step from the repository root. `-Build` drives Packer and Hyper-V, so it needs an **elevated** PowerShell 7 session; publishing an already-built box does not:
+Maintainers can build and publish the box in one step from the repository root (this needs write access to the repository). `-Build` drives Packer and Hyper-V, so it needs an **elevated** PowerShell 7 session; publishing an already-built box does not:
 
 ```powershell
 .\powershell\Publish-K8sBoxRelease.ps1 -Build -Register   # elevated; tag auto-increments
@@ -294,7 +294,7 @@ k8s-hyperv-lab/
 
 ### Kubeconfig and bootstrap-token security
 
-`kubeadm init` creates `admin.conf`, which grants cluster-admin access. The deployment copies this credential to the local `artifacts/kubeconfig` staging path and then to the Windows user's `~/.kube/config`. **Never commit, publish, or share either file.** Both locations are local credentials and are excluded by `.gitignore`.
+`kubeadm init` creates `admin.conf`, which grants cluster-admin access. The deployment copies this credential to the local `artifacts/kubeconfig` staging path and then to the Windows user's `~/.kube/config`. The deployment overwrites `~/.kube/config`; if that file already exists and differs, it is first backed up as `~/.kube/config.bak-<timestamp>` (merge any other cluster contexts back yourself). **Never commit, publish, or share either file.** Both locations are local credentials and are excluded by `.gitignore`.
 
 The worker join command contains a kubeadm bootstrap token. The automation keeps the join command only in transient Ansible variables while workers are joining; it is not written to the repository.
 

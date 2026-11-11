@@ -1,7 +1,7 @@
 packer {
   required_plugins {
-    hyperv  = { source = "github.com/hashicorp/hyperv", version = ">= 1.1.4" }
-    vagrant = { source = "github.com/hashicorp/vagrant", version = ">= 1.1.5" }
+    hyperv  = { source = "github.com/hashicorp/hyperv", version = ">= 1.1.4, < 2.0.0" }
+    vagrant = { source = "github.com/hashicorp/vagrant", version = ">= 1.1.5, < 2.0.0" }
   }
 }
 variable "iso_url" {

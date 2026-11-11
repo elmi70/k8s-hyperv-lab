@@ -10,6 +10,10 @@
         kubectl apply -f
         https://github.com/kubernetes-sigs/metrics-server/releases/download/{{ metrics_server_version }}/components.yaml
       changed_when: true
+      register: metrics_server_apply
+      retries: 5
+      delay: 10
+      until: metrics_server_apply.rc == 0
     - name: Configure Metrics Server for local kubeadm lab kubelet certificates
       ansible.builtin.command: >-
         kubectl -n kube-system patch deployment metrics-server --type=json

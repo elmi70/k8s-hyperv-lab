@@ -5,24 +5,33 @@
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
   tasks:
-    - name: Require the Calico pool to match the kubeadm pod CIDR
+    - name: Require the Calico settings to match the kubeadm pod CIDR and the lab network
       ansible.builtin.assert:
         that:
           - "('cidr: ' ~ pod_cidr) in lookup('ansible.builtin.file', playbook_dir ~ '/../../kubernetes/calico/installation.yaml')"
-        fail_msg: "kubernetes/calico/installation.yaml must use cidr: {{ pod_cidr }} (pod_cidr in ansible/inventory/group_vars/all.yml)"
+          - "('- ' ~ lab_cidr) in lookup('ansible.builtin.file', playbook_dir ~ '/../../kubernetes/calico/installation.yaml')"
+        fail_msg: >-
+          kubernetes/calico/installation.yaml must use cidr: {{ pod_cidr }} for the IP pool and
+          {{ lab_cidr }} under nodeAddressAutodetectionV4 (pod_cidr and lab_cidr in ansible/inventory/group_vars/all.yml)
       delegate_to: localhost
       become: false
       run_once: true
 
+    # Server-side apply: the Calico CRDs are too large for the client-side
+    # last-applied annotation ("metadata.annotations: Too long").
     - name: Install Calico CRDs
-      ansible.builtin.command: kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/{{ calico_version }}/manifests/v3_projectcalico_org.yaml
+      ansible.builtin.command: >-
+        kubectl apply --server-side --force-conflicts -f
+        https://raw.githubusercontent.com/projectcalico/calico/{{ calico_version }}/manifests/v3_projectcalico_org.yaml
       changed_when: true
       register: calico_crds
       retries: 5
       delay: 10
       until: calico_crds.rc == 0
     - name: Install Tigera operator
-      ansible.builtin.command: kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/{{ calico_version }}/manifests/tigera-operator.yaml
+      ansible.builtin.command: >-
+        kubectl apply --server-side --force-conflicts -f
+        https://raw.githubusercontent.com/projectcalico/calico/{{ calico_version }}/manifests/tigera-operator.yaml
       changed_when: true
       register: tigera_operator
       retries: 5

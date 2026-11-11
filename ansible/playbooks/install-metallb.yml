@@ -10,6 +10,10 @@
         kubectl apply -f
         https://raw.githubusercontent.com/metallb/metallb/{{ metallb_version }}/config/manifests/metallb-native.yaml
       changed_when: true
+      register: metallb_apply
+      retries: 5
+      delay: 10
+      until: metallb_apply.rc == 0
     - name: Wait for MetalLB controller
       ansible.builtin.command: kubectl -n metallb-system rollout status deployment/controller --timeout=5m
       changed_when: false
@@ -21,6 +25,11 @@
         src: ../../kubernetes/metallb/address-pool.yaml
         dest: /tmp/metallb-address-pool.yaml
         mode: '0644'
+    # The MetalLB admission webhook can lag behind the controller rollout, so retry.
     - name: Configure MetalLB L2 pool
       ansible.builtin.command: kubectl apply -f /tmp/metallb-address-pool.yaml
       changed_when: true
+      register: metallb_pool
+      retries: 10
+      delay: 10
+      until: metallb_pool.rc == 0

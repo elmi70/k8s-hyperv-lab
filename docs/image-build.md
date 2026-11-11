@@ -22,12 +22,13 @@ This repository avoids that dependency:
 Source: HashiCorp's HCP Vagrant deprecation notice.
 
 ## Build steps
+
 ```mermaid
 flowchart LR
  ISO[Ubuntu 26.04.1 LTS ISO] --> P[Packer] --> B[ubuntu-26.04.1-hyperv.box] --> L[Vagrant box cache]
  B -. optional .-> G[GitHub Release]
 ```
-The ISO URL and SHA-256 are pinned in the Packer template. Generated `.box` files are excluded from Git.
+Generated `.box` files are excluded from Git.
 
 Build and register the box manually (elevated PowerShell 7):
 
@@ -42,7 +43,7 @@ vagrant box add ubuntu2604-hyperv .\output\ubuntu-26.04.1-hyperv.box
 
 `-force` overwrites a previous build in `output\`. The build needs an elevated PowerShell session.
 
-Or build, publish to a GitHub Release and register in one step:
+Maintainers can instead build, publish to a GitHub Release and register in one step (needs `gh auth login` and write access to the repository):
 
 ```powershell
 .\powershell\Publish-K8sBoxRelease.ps1 -Build -Register

@@ -10,6 +10,9 @@ kubernetes_minor: "v{{ kubernetes_version.split('.')[:2] | join('.') }}"
 # (install-cni.yml asserts this).
 pod_cidr: 10.244.0.0/16
 service_cidr: 10.96.0.0/12
+# Lab network (kube-lab-net). Calico's nodeAddressAutodetectionV4 in
+# kubernetes/calico/installation.yaml must use this CIDR (install-cni.yml asserts it).
+lab_cidr: 192.168.77.0/24
 
 # Node tooling
 crictl_version: "v1.37.0"

@@ -73,6 +73,18 @@
         - name: Remove test pod and PVC
           ansible.builtin.command: kubectl -n default delete pod/lab-storage-test pvc/lab-storage-test --ignore-not-found --timeout=2m
           changed_when: false
+    - name: Read the Traefik LoadBalancer address
+      ansible.builtin.command: kubectl -n traefik get svc traefik -o jsonpath={.status.loadBalancer.ingress[0].ip}
+      register: traefik_lb_ip
+      changed_when: false
+      retries: 12
+      delay: 10
+      until: traefik_lb_ip.rc == 0 and traefik_lb_ip.stdout | length > 0
+    - name: Require the Traefik address to come from the MetalLB pool on the lab network
+      ansible.builtin.assert:
+        that: traefik_lb_ip.stdout.startswith((lab_cidr.split('.')[:3] | join('.')) ~ '.')
+        fail_msg: "Traefik LoadBalancer address {{ traefik_lb_ip.stdout }} is not on the lab network {{ lab_cidr }}"
+        success_msg: "Traefik LoadBalancer address: {{ traefik_lb_ip.stdout }}"
     - name: Show nodes
       ansible.builtin.command: kubectl get nodes -o wide
       register: nodes

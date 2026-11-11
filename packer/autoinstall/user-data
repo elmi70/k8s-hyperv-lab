@@ -7,11 +7,17 @@ autoinstall:
   identity:
     hostname: ubuntu2604
     username: vagrant
-    # Lab bootstrap credential only. Change before using outside this disposable lab.
-    password: "$6$rounds=4096$VagrantLab$9Ue5TvoxcxbMBQPHk6TmwvTuxuMInu8YJ5KVM1eaTeT2WfCUWq0hwLhxo80vqIYEJhzTqUuT0C/t1jJAz.NE/"
+    # Lab bootstrap credential only (password: vagrant). Change before using outside this disposable lab.
+    # Regenerate with: openssl passwd -6 -salt 'rounds=4096$VagrantLab' 'vagrant'
+    password: "$6$rounds=4096$VagrantLab$WUXY9Am5NSzDYpswsjVdRjQPlaEsucDQDCEm3AETxsR3kJqVow84h1re5lAiVWcxauQ4ysxw/jKPmhnNJjet90"
   ssh:
     install-server: true
     allow-pw: true
+    # Vagrant's well-known insecure public keys (hashicorp/vagrant keys/vagrant.pub).
+    # The Vagrantfile sets insert_key = false, so Vagrant keeps using these keys.
+    authorized-keys:
+      - "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA6NF8iallvQVp22WDkTkyrtvp9eWW6A8YVr+kz4TjGYe7gHzIw+niNltGEFHzD8+v1I2YJ6oXevct1YeS0o9HZyN1Q9qgCgzUFtdOKLv6IedplqoPkcmF0aYet2PkEDo3MlTBckFXPITAMzF8dJSIFo9D8HfdOV0IAdx4O7PtixWKn5y2hMNG0zQPyUecp4pzC6kivAIhyfHilFR61RGL+GPXQ2MWZWFYbAGjyiYJnAmCP3NOTd0jMZEnDkbUvxhMmBYSdETk1rRgm+R4LOzFUGaHqHDLKLX+FIPKcF96hrucXzcWyLbIbEgE98OHlnVYCzRdK8jlqm8tehUc9c9WhQ== vagrant insecure public key"
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN1YdxBpNlzxDqfJyw/QKow1F+wvG9hXGoqiysfJOn5Y vagrant insecure public key"
   storage:
     layout:
       name: direct
@@ -24,4 +30,5 @@ autoinstall:
     - curtin in-target --target=/target -- sh -c "echo 'vagrant ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/99-vagrant"
     - curtin in-target --target=/target -- chmod 0440 /etc/sudoers.d/99-vagrant
     - curtin in-target --target=/target -- systemctl enable ssh
-  shutdown: poweroff
+  # No `shutdown:` key: the installer reboots into the installed system so Packer can connect
+  # over SSH and run its provisioners. Packer powers the VM off itself (shutdown_command).

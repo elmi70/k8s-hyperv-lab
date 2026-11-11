@@ -8,6 +8,19 @@ flowchart LR
  WIN[Windows + Hyper-V] --> PK[Packer build] --> BOX[.box] --> PUB[Publish-K8sBoxRelease.ps1] --> REL[GitHub Release]
 ```
 
+## What CI checks
+
+`.github/workflows/validate.yml` runs on every pull request, every push to `main`, and manually. It validates the source only; it does not build the box, create VMs or run the playbooks:
+
+- Packer: `init`, `fmt -check` and `validate`.
+- `yamllint` on all YAML.
+- `ansible-playbook --syntax-check` on every playbook.
+- Renders the kubeadm Jinja template against the example inventory and lints the output.
+- `shellcheck` on the scripts in `vagrant/scripts` and `packer/scripts`.
+- `ruby -c` on the Vagrantfile.
+- `actionlint` on the workflows.
+- PSScriptAnalyzer on `powershell/` (settings in `PSScriptAnalyzerSettings.psd1`).
+
 ## Publish
 
 Authenticate once, then run from the repository root:
@@ -19,7 +32,9 @@ gh auth login
 .\powershell\Publish-K8sBoxRelease.ps1 -Tag v1.0.0        # publish an already-built box (no elevation needed)
 ```
 
-`-Build` needs an **elevated** PowerShell 7 session. Without it the script publishes the box already in `packer\output`.
+`-Build` needs an **elevated** PowerShell 7 session. Without `-Build`, the script publishes the box already in `packer\output` and does not need elevation.
+
+Publishing needs write access to the repository, so it is meant for maintainers. Everyone else only needs to build the box locally ([Image build](image-build.md)) or download a published one (below).
 
 The script checks `gh` authentication, optionally runs `packer init/fmt/validate/build -force`, refuses boxes of 2 GiB or more (the GitHub Releases per-file limit), writes `SHA256SUMS`, and creates or updates the release. Re-running with an existing tag replaces the assets. `-Register` also adds the box to Vagrant on this machine.
 

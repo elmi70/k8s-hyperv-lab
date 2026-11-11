@@ -12,7 +12,8 @@ $root=Split-Path $PSScriptRoot -Parent
 function Assert-Command([string]$Name){if(-not(Get-Command $Name -ErrorAction SilentlyContinue)){throw "Required command missing: $Name"}}
 foreach($c in 'vagrant','wsl','kubectl'){Assert-Command $c}
 if((Get-Service vmms -ErrorAction Stop).Status -ne 'Running'){throw 'Hyper-V vmms service is not running.'}
-if(-not $SkipBoxCheck){$boxes=(vagrant box list) -join "`n";if($boxes -notmatch '(?m)^ubuntu2604-hyperv\s'){throw 'Vagrant box ubuntu2604-hyperv is missing. Build/register it first.'}}
+$boxName=if($env:K8S_LAB_BOX){$env:K8S_LAB_BOX}else{'ubuntu2604-hyperv'}
+if(-not $SkipBoxCheck){$boxes=(vagrant box list) -join "`n";if($boxes -notmatch "(?m)^$([regex]::Escape($boxName))\s"){throw "Vagrant box $boxName is missing. Build/register it first (see docs/image-build.md)."}}
 & "$PSScriptRoot\New-K8sLabNetwork.ps1"
 Push-Location "$root\vagrant"
 try {
@@ -57,7 +58,13 @@ $source=Join-Path $root 'artifacts\kubeconfig'
 $target=Join-Path $HOME '.kube\config'
 if(-not(Test-Path $source)){throw "Expected kubeconfig not found: $source"}
 New-Item -ItemType Directory -Force -Path (Split-Path $target) | Out-Null
+# Do not silently destroy an existing kubeconfig (contexts for other clusters): back it up first.
+if((Test-Path $target) -and ((Get-FileHash $source).Hash -ne (Get-FileHash $target).Hash)){
+  $backup="$target.bak-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+  Copy-Item $target $backup
+  Write-Host "Existing kubeconfig backed up to $backup" -ForegroundColor Yellow
+}
 Copy-Item $source $target -Force
 kubectl --kubeconfig $target get nodes -o wide
 kubectl --kubeconfig $target get svc -A
-Write-Host "Kubernetes lab ready: Calico + MetalLB + Metrics Server + Traefik Gateway API. Kubeconfig: $target" -ForegroundColor Green
+Write-Host "Kubernetes lab ready: Calico + MetalLB + Metrics Server + local-path storage + Traefik Gateway API. Kubeconfig: $target" -ForegroundColor Green

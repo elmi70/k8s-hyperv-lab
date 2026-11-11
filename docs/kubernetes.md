@@ -4,17 +4,23 @@
 flowchart TD
  D[Deploy-K8sLab.ps1] --> N[Hyper-V NAT network]
  N --> V[Vagrant up]
- V --> I[Discover SSH details]
+ V --> NIC[Second NIC + static lab IPs]
+ NIC --> I[Discover SSH details]
  I --> G[Generate Ansible inventory]
  G --> A[OS + containerd prerequisites]
- A --> P[Install kubelet, kubeadm, kubectl]
+ A --> P[Install kubelet, kubeadm, kubectl, crictl, etcd tools]
  P --> K[kubeadm init]
  K --> J[Join workers]
- J --> S{CNI selection}
- S --> CA[Calico 3.33.0]
- CA --> R[Wait for Ready nodes]
+ J --> CA[Calico CNI]
+ CA --> LB[MetalLB]
+ LB --> MS[Metrics Server]
+ MS --> ST[local-path storage]
+ ST --> TR[Gateway API + Traefik]
+ TR --> R[Validate cluster]
  R --> E[Export kubeconfig]
 ```
+
+`-StopBeforeInit` stops after the "kubelet, kubeadm, kubectl, crictl, etcd tools" step. The full order of scripts and playbooks is in the [Script runbook](script-order.md).
 
 Run from elevated PowerShell:
 

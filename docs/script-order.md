@@ -2,14 +2,15 @@
 
 Run everything from the repository root in an **elevated PowerShell 7** session (except where noted).
 
-![Animated script order: Test-K8sLabReady, Publish-K8sBoxRelease, Deploy-K8sLab and the steps it runs, then kubectl](images/script-order.svg)
+![Animated script order: Test-K8sLabReady, get the box, Deploy-K8sLab and the steps it runs, then kubectl](images/script-order.svg)
 
 ## First-time setup
 
 | Step | Script | What it does |
 |---|---|---|
 | 1 | `.\powershell\Test-K8sLabReady.ps1` | Host preflight: `vmms` running and required tools installed (`git`, `packer`, `vagrant`, `kubectl`, `wsl`). Exits 1 if any fail. A missing `gh` or `kube-lab-net` switch only produces a warning (`gh` is needed just for box releases; `Deploy-K8sLab.ps1` creates the switch). It does not check the cluster. |
-| 2 | `.\powershell\Publish-K8sBoxRelease.ps1 -Build -Register` | Builds the Ubuntu 26.04.1 box with Packer, publishes it to a GitHub Release and registers it with Vagrant. To only build, use the commands in [Image build](image-build.md). To reuse a release, see [GitHub validation and releases](github-releases.md). |
+| 2 | Get the box: `packer build -force .` then `vagrant box add ubuntu2604-hyperv ...`, or `gh release download` | Build the Ubuntu 26.04.1 box locally (commands in [Image build](image-build.md)), or download a published one ([GitHub validation and releases](github-releases.md)), then register it with Vagrant. No GitHub access is needed to build. |
+| 2b (optional) | `.\powershell\Publish-K8sBoxRelease.ps1 -Build -Register` | Maintainers only: builds the box, publishes it to a GitHub Release (needs `gh auth login` and write access to the repository) and registers it with Vagrant. |
 | 3 | `.\powershell\Deploy-K8sLab.ps1` | Does everything else in order (below). Add `-StopBeforeInit` to stop before `kubeadm init`. |
 | 4 | `kubectl get nodes -o wide` | Confirm all three nodes are `Ready`. Full checks: [Post-deployment validation](post-deployment-validation.md). |
 

@@ -4,6 +4,11 @@ metadata:
   name: default
 spec:
   calicoNetwork:
+    # Each VM has two NICs. Pin Calico to the lab network (kube-lab-net) so it uses the same
+    # address as kubelet's node-ip instead of the Default Switch management NIC.
+    nodeAddressAutodetectionV4:
+      cidrs:
+        - 192.168.77.0/24
     ipPools:
       - blockSize: 26
         cidr: 10.244.0.0/16
