@@ -1,0 +1,53 @@
+---
+- name: Install Gateway API and Traefik
+  hosts: control_plane
+  become: true
+  vars:
+    gateway_api_version: "v1.6.3"
+    traefik_chart_version: "42.3.1"
+    helm_version: "v4.3.1"
+    helm_sha256: "0403a88ae20913d11b10a2467b50087721fea7581736da6b9d3992f5357fe54b"
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  tasks:
+    - name: Install Standard Gateway API CRDs
+      ansible.builtin.command: >-
+        kubectl apply -f
+        https://github.com/kubernetes-sigs/gateway-api/releases/download/{{ gateway_api_version }}/standard-install.yaml
+      changed_when: true
+    - name: Download Helm
+      ansible.builtin.get_url:
+        url: "https://get.helm.sh/helm-{{ helm_version }}-linux-amd64.tar.gz"
+        dest: "/tmp/helm-{{ helm_version }}.tar.gz"
+        checksum: "sha256:{{ helm_sha256 }}"
+        mode: '0644'
+    - name: Extract Helm
+      ansible.builtin.unarchive:
+        src: "/tmp/helm-{{ helm_version }}.tar.gz"
+        dest: /tmp
+        remote_src: true
+    - name: Install Helm binary
+      ansible.builtin.copy:
+        src: /tmp/linux-amd64/helm
+        dest: /usr/local/bin/helm
+        remote_src: true
+        mode: '0755'
+    - name: Add Traefik Helm repository
+      ansible.builtin.command: helm repo add traefik https://traefik.github.io/charts --force-update
+      changed_when: true
+    - name: Update Helm repositories
+      ansible.builtin.command: helm repo update
+      changed_when: true
+    - name: Copy Traefik values
+      ansible.builtin.copy:
+        src: ../../kubernetes/traefik/values.yaml
+        dest: /tmp/traefik-values.yaml
+        mode: '0644'
+    - name: Install Traefik with Gateway API provider
+      ansible.builtin.command: >-
+        helm upgrade --install traefik traefik/traefik
+        --version {{ traefik_chart_version }}
+        --namespace traefik --create-namespace
+        --values /tmp/traefik-values.yaml
+        --wait --timeout 10m
+      changed_when: true

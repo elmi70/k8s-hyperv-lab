@@ -1,0 +1,51 @@
+---
+- name: Install Kubernetes packages
+  hosts: k8s_nodes
+  become: true
+  vars:
+    kubernetes_minor: "v1.37"
+    kubernetes_version: "1.37.1"
+  tasks:
+    - name: Create apt keyring directory
+      ansible.builtin.file: { path: /etc/apt/keyrings, state: directory, mode: '0755' }
+    - name: Install Kubernetes repository key
+      ansible.builtin.shell: "curl -fsSL https://pkgs.k8s.io/core:/stable:/{{ kubernetes_minor }}/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg"
+      args: { creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg }
+    - name: Configure Kubernetes repository
+      ansible.builtin.copy:
+        dest: /etc/apt/sources.list.d/kubernetes.list
+        mode: '0644'
+        content: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/{{ kubernetes_minor }}/deb/ /\n"
+    - name: Refresh apt metadata
+      ansible.builtin.apt:
+        update_cache: true
+
+    - name: Resolve exact Debian package version for Kubernetes patch
+      ansible.builtin.shell: |
+        set -o pipefail
+        apt-cache madison kubeadm | awk '$3 ~ /^{{ kubernetes_version | regex_escape }}-/ { print $3; exit }'
+      args:
+        executable: /bin/bash
+      register: kubernetes_deb_version
+      changed_when: false
+      failed_when: kubernetes_deb_version.stdout | length == 0
+
+    - name: Install exact Kubernetes patch version on every node
+      ansible.builtin.apt:
+        name:
+          - "kubeadm={{ kubernetes_deb_version.stdout }}"
+          - "kubelet={{ kubernetes_deb_version.stdout }}"
+          - "kubectl={{ kubernetes_deb_version.stdout }}"
+        state: present
+        allow_downgrade: true
+    - name: Enable kubelet service
+      ansible.builtin.systemd:
+        name: kubelet
+        enabled: true
+        state: started
+
+    - name: Hold Kubernetes packages
+      ansible.builtin.dpkg_selections:
+        name: "{{ item }}"
+        selection: hold
+      loop: [kubelet, kubeadm, kubectl]

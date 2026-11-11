@@ -1,0 +1,45 @@
+---
+- name: Initialize the Kubernetes control plane
+  hosts: control_plane
+  become: true
+  vars:
+    kubernetes_version: "v1.37.1"
+  tasks:
+    - name: Render kubeadm configuration
+      ansible.builtin.template:
+        src: ../templates/kubeadm-config.yaml.j2
+        dest: /tmp/kubeadm-config.yaml
+        mode: '0600'
+    - name: Initialize control plane
+      ansible.builtin.command: kubeadm init --config /tmp/kubeadm-config.yaml --upload-certs
+      args: { creates: /etc/kubernetes/admin.conf }
+    - name: Create vagrant kubeconfig directory
+      ansible.builtin.file: { path: /home/vagrant/.kube, state: directory, owner: vagrant, group: vagrant, mode: '0700' }
+    - name: Install vagrant kubeconfig
+      ansible.builtin.copy:
+        src: /etc/kubernetes/admin.conf
+        dest: /home/vagrant/.kube/config
+        remote_src: true
+        owner: vagrant
+        group: vagrant
+        mode: '0600'
+    - name: Create worker join command
+      ansible.builtin.command: kubeadm token create --print-join-command
+      register: join_result
+      changed_when: false
+    - name: Store join command
+      ansible.builtin.set_fact:
+        worker_join_command: "{{ join_result.stdout }} --cri-socket unix:///run/containerd/containerd.sock"
+    - name: Fetch host kubeconfig
+      ansible.builtin.fetch:
+        src: /etc/kubernetes/admin.conf
+        dest: ../../artifacts/kubeconfig
+        flat: true
+
+- name: Join worker nodes
+  hosts: workers
+  become: true
+  tasks:
+    - name: Join cluster
+      ansible.builtin.command: "{{ hostvars[groups['control_plane'][0]].worker_join_command }}"
+      args: { creates: /etc/kubernetes/kubelet.conf }

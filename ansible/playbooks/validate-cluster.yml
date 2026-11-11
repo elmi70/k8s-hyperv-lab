@@ -1,0 +1,24 @@
+---
+- name: Validate completed lab
+  hosts: control_plane
+  become: true
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  tasks:
+    - name: Wait for all nodes Ready
+      ansible.builtin.command: kubectl wait --for=condition=Ready nodes --all --timeout=10m
+      changed_when: false
+    - name: Verify Metrics API
+      ansible.builtin.command: kubectl get --raw /apis/metrics.k8s.io/
+      changed_when: false
+    - name: Verify MetalLB pool
+      ansible.builtin.command: kubectl -n metallb-system get ipaddresspools.metallb.io kube-lab-pool
+      changed_when: false
+    - name: Verify Traefik GatewayClass
+      ansible.builtin.command: kubectl get gatewayclass
+      changed_when: false
+    - name: Show nodes
+      ansible.builtin.command: kubectl get nodes -o wide
+      register: nodes
+      changed_when: false
+    - ansible.builtin.debug: { var: nodes.stdout_lines }

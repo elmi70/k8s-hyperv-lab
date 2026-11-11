@@ -1,0 +1,22 @@
+all:
+  vars:
+    ansible_user: vagrant
+    ansible_python_interpreter: /usr/bin/python3
+  children:
+    control_plane:
+      hosts:
+        control1:
+          ansible_host: 192.168.77.11
+          lab_ip: 192.168.77.11
+    workers:
+      hosts:
+        worker1:
+          ansible_host: 192.168.77.12
+          lab_ip: 192.168.77.12
+        worker2:
+          ansible_host: 192.168.77.13
+          lab_ip: 192.168.77.13
+    k8s_nodes:
+      children:
+        control_plane:
+        workers:

@@ -1,0 +1,50 @@
+---
+- name: Kubernetes host preflight metadata
+  hosts: k8s_nodes
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Detect cgroup filesystem type
+      ansible.builtin.command: stat -fc %T /sys/fs/cgroup
+      register: cgroup_fs
+      changed_when: false
+
+    - name: Require cgroup v2
+      ansible.builtin.assert:
+        that:
+          - cgroup_fs.stdout | trim == 'cgroup2fs'
+        fail_msg: "Kubernetes 1.37 lab requires cgroup v2; detected {{ cgroup_fs.stdout | trim }}"
+
+    - name: Read product UUID
+      ansible.builtin.slurp:
+        src: /sys/class/dmi/id/product_uuid
+      register: product_uuid_raw
+
+    - name: Store normalized node identity
+      ansible.builtin.set_fact:
+        lab_product_uuid: "{{ product_uuid_raw.content | b64decode | trim | lower }}"
+        lab_primary_mac: "{{ ansible_default_ipv4.macaddress | default('') | lower }}"
+        lab_hostname: "{{ ansible_hostname }}"
+
+- name: Validate node identity uniqueness
+  hosts: localhost
+  gather_facts: false
+  vars:
+    lab_nodes: "{{ groups['k8s_nodes'] }}"
+    lab_hostnames: "{{ lab_nodes | map('extract', hostvars, 'lab_hostname') | list }}"
+    lab_uuids: "{{ lab_nodes | map('extract', hostvars, 'lab_product_uuid') | list }}"
+    lab_macs: "{{ lab_nodes | map('extract', hostvars, 'lab_primary_mac') | list }}"
+  tasks:
+    - name: Assert unique hostnames, product UUIDs and primary MACs
+      ansible.builtin.assert:
+        that:
+          - lab_hostnames | unique | length == lab_nodes | length
+          - lab_uuids | reject('equalto', '') | list | length == lab_nodes | length
+          - lab_uuids | unique | length == lab_nodes | length
+          - lab_macs | reject('equalto', '') | list | length == lab_nodes | length
+          - lab_macs | unique | length == lab_nodes | length
+        fail_msg: >-
+          Kubernetes requires unique node identities.
+          hostnames={{ lab_hostnames }}, product_uuids={{ lab_uuids }}, primary_macs={{ lab_macs }}
+        success_msg: >-
+          Node identity preflight passed: hostnames, product UUIDs and primary MAC addresses are unique.

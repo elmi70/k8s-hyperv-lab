@@ -1,0 +1,79 @@
+---
+- name: Install CRI troubleshooting tools on all Kubernetes nodes
+  hosts: k8s_nodes
+  become: true
+  vars:
+    crictl_version: "v1.37.0"
+  tasks:
+    - name: Download crictl archive and checksum
+      ansible.builtin.get_url:
+        url: "{{ item.url }}"
+        dest: "{{ item.dest }}"
+        mode: '0644'
+      loop:
+        - url: "https://github.com/kubernetes-sigs/cri-tools/releases/download/{{ crictl_version }}/crictl-{{ crictl_version }}-linux-amd64.tar.gz"
+          dest: "/tmp/crictl-{{ crictl_version }}-linux-amd64.tar.gz"
+        - url: "https://github.com/kubernetes-sigs/cri-tools/releases/download/{{ crictl_version }}/crictl-{{ crictl_version }}-linux-amd64.tar.gz.sha256"
+          dest: "/tmp/crictl-{{ crictl_version }}-linux-amd64.tar.gz.sha256"
+
+    - name: Verify crictl checksum
+      ansible.builtin.shell: >-
+        cd /tmp && sha256sum -c crictl-{{ crictl_version }}-linux-amd64.tar.gz.sha256
+      changed_when: false
+
+    - name: Install crictl
+      ansible.builtin.unarchive:
+        src: "/tmp/crictl-{{ crictl_version }}-linux-amd64.tar.gz"
+        dest: /usr/local/bin
+        remote_src: true
+        include:
+          - crictl
+
+    - name: Configure crictl for containerd
+      ansible.builtin.copy:
+        dest: /etc/crictl.yaml
+        mode: '0644'
+        content: |
+          runtime-endpoint: unix:///run/containerd/containerd.sock
+          image-endpoint: unix:///run/containerd/containerd.sock
+          timeout: 10
+          debug: false
+
+    - name: Verify crictl
+      ansible.builtin.command: crictl version
+      changed_when: false
+
+- name: Install etcd administration clients on the control plane
+  hosts: control_plane
+  become: true
+  vars:
+    etcd_tools_version: "v3.7.3"
+  tasks:
+    - name: Download etcd release archive
+      ansible.builtin.get_url:
+        url: "https://github.com/etcd-io/etcd/releases/download/{{ etcd_tools_version }}/etcd-{{ etcd_tools_version }}-linux-amd64.tar.gz"
+        dest: "/tmp/etcd-{{ etcd_tools_version }}-linux-amd64.tar.gz"
+        mode: '0644'
+
+    - name: Extract etcd tools
+      ansible.builtin.unarchive:
+        src: "/tmp/etcd-{{ etcd_tools_version }}-linux-amd64.tar.gz"
+        dest: /tmp
+        remote_src: true
+
+    - name: Install etcdctl and etcdutl clients
+      ansible.builtin.copy:
+        src: "/tmp/etcd-{{ etcd_tools_version }}-linux-amd64/{{ item }}"
+        dest: "/usr/local/bin/{{ item }}"
+        remote_src: true
+        mode: '0755'
+      loop:
+        - etcdctl
+        - etcdutl
+
+    - name: Verify etcd client tools
+      ansible.builtin.command: "{{ item }} version"
+      loop:
+        - etcdctl
+        - etcdutl
+      changed_when: false

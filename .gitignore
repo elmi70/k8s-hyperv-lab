@@ -1,0 +1,97 @@
+# Packer
+packer/output/
+packer/output-*/
+packer_cache/
+.packer.d/
+*.box
+crash.log
+packer-debug.log
+
+# Vagrant
+.vagrant/
+vagrant.log
+
+# Kubernetes credentials / generated PKI
+kubeconfig
+kubeconfig.*
+*.kubeconfig
+.kube/
+admin.conf
+pki/
+*.csr
+
+# Secrets and credentials
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.pfx
+*.p12
+*.ppk
+*.jks
+*.keystore
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+.github-token
+github-token*
+token.txt
+credentials*
+secrets*
+
+# Ansible
+*.retry
+.vault_pass
+vault-password*
+ansible/vault-password*
+
+# Terraform future-proofing
+.terraform/
+*.tfstate
+*.tfstate.*
+*.auto.tfvars
+*.auto.tfvars.json
+secrets.tfvars
+
+# PowerShell / Hyper-V
+*.clixml
+PowerShell_transcript.*
+transcript*.txt
+*.vhd
+*.vhdx
+*.avhd
+*.avhdx
+*.vmcx
+*.vmrs
+Hyper-V/
+VMExports/
+
+# Local output / temporary files
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+tmp/
+temp/
+.local/
+.local-state/
+artifacts/
+release-assets/
+
+# Editors / OS
+.vscode/
+.idea/
+*.code-workspace
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Generated Ansible inventory
+ansible/inventory/hosts.yml
+
+# Explicit Kubernetes admin credential staging file
+artifacts/kubeconfig

@@ -1,0 +1,13 @@
+providers:
+  kubernetesIngress:
+    enabled: false
+  kubernetesGateway:
+    enabled: true
+service:
+  type: LoadBalancer
+gateway:
+  enabled: true
+  listeners:
+    web:
+      port: 80
+      protocol: HTTP

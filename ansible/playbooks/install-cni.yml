@@ -1,0 +1,26 @@
+---
+- name: Install Calico CNI
+  hosts: control_plane
+  become: true
+  vars:
+    calico_version: "v3.33.0"
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  tasks:
+    - name: Install Calico CRDs
+      ansible.builtin.command: kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/{{ calico_version }}/manifests/v3_projectcalico_org.yaml
+      changed_when: true
+    - name: Install Tigera operator
+      ansible.builtin.command: kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/{{ calico_version }}/manifests/tigera-operator.yaml
+      changed_when: true
+    - name: Copy Calico installation
+      ansible.builtin.copy:
+        src: ../../kubernetes/calico/installation.yaml
+        dest: /tmp/calico-installation.yaml
+        mode: '0644'
+    - name: Apply Calico
+      ansible.builtin.command: kubectl apply -f /tmp/calico-installation.yaml
+      changed_when: true
+    - name: Wait for nodes Ready
+      ansible.builtin.command: kubectl wait --for=condition=Ready nodes --all --timeout=10m
+      changed_when: false

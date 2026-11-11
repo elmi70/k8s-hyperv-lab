@@ -1,0 +1,28 @@
+---
+- name: Install MetalLB
+  hosts: control_plane
+  become: true
+  vars:
+    metallb_version: "v0.16.2"
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  tasks:
+    - name: Install MetalLB components
+      ansible.builtin.command: >-
+        kubectl apply -f
+        https://raw.githubusercontent.com/metallb/metallb/{{ metallb_version }}/config/manifests/metallb-native.yaml
+      changed_when: true
+    - name: Wait for MetalLB controller
+      ansible.builtin.command: kubectl -n metallb-system rollout status deployment/controller --timeout=5m
+      changed_when: false
+    - name: Wait for MetalLB speakers
+      ansible.builtin.command: kubectl -n metallb-system rollout status daemonset/speaker --timeout=5m
+      changed_when: false
+    - name: Copy MetalLB lab configuration
+      ansible.builtin.copy:
+        src: ../../kubernetes/metallb/address-pool.yaml
+        dest: /tmp/metallb-address-pool.yaml
+        mode: '0644'
+    - name: Configure MetalLB L2 pool
+      ansible.builtin.command: kubectl apply -f /tmp/metallb-address-pool.yaml
+      changed_when: true

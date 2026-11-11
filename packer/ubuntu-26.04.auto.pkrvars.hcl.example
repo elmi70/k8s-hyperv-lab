@@ -1,0 +1,3 @@
+# Defaults are already pinned to Ubuntu 26.04.1 LTS.
+# Override only for a trusted mirror or a different build switch.
+hyperv_switch_name = "Default Switch"

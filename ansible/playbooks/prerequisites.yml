@@ -1,0 +1,68 @@
+---
+- name: Prepare Kubernetes nodes
+  hosts: k8s_nodes
+  become: true
+  tasks:
+    - name: Disable swap now
+      ansible.builtin.command: swapoff -a
+      changed_when: false
+    - name: Disable swap persistently
+      ansible.builtin.replace:
+        path: /etc/fstab
+        regexp: '^(.*\sswap\s+.*)$'
+        replace: '# \1'
+    - name: Configure kernel modules
+      ansible.builtin.copy:
+        dest: /etc/modules-load.d/k8s.conf
+        content: "overlay\nbr_netfilter\n"
+        mode: '0644'
+    - name: Load overlay
+      ansible.builtin.command: modprobe overlay
+      changed_when: false
+    - name: Load br_netfilter
+      ansible.builtin.command: modprobe br_netfilter
+      changed_when: false
+    - name: Configure Kubernetes sysctl settings
+      ansible.builtin.copy:
+        dest: /etc/sysctl.d/99-kubernetes-cri.conf
+        mode: '0644'
+        content: |
+          net.bridge.bridge-nf-call-iptables = 1
+          net.bridge.bridge-nf-call-ip6tables = 1
+          net.ipv4.ip_forward = 1
+    - name: Reload sysctl
+      ansible.builtin.command: sysctl --system
+      changed_when: false
+    - name: Install containerd and base packages
+      ansible.builtin.apt:
+        name: [containerd, ca-certificates, curl, gpg]
+        state: present
+        update_cache: true
+    - name: Create containerd directory
+      ansible.builtin.file: { path: /etc/containerd, state: directory, mode: '0755' }
+    - name: Generate containerd configuration
+      ansible.builtin.shell: containerd config default > /etc/containerd/config.toml
+      args: { creates: /etc/containerd/config.toml }
+    - name: Enable systemd cgroups
+      ansible.builtin.replace:
+        path: /etc/containerd/config.toml
+        regexp: 'SystemdCgroup = false'
+        replace: 'SystemdCgroup = true'
+    - name: Set kubelet node IP
+      ansible.builtin.copy:
+        dest: /etc/default/kubelet
+        mode: '0644'
+        content: 'KUBELET_EXTRA_ARGS=--node-ip={{ lab_ip }}\n'
+    - name: Verify containerd uses systemd cgroups
+      ansible.builtin.command: containerd config dump
+      register: containerd_config_dump
+      changed_when: false
+
+    - name: Require SystemdCgroup in containerd
+      ansible.builtin.assert:
+        that:
+          - "'SystemdCgroup = true' in containerd_config_dump.stdout"
+        fail_msg: "containerd is not configured with SystemdCgroup = true"
+
+    - name: Enable containerd
+      ansible.builtin.service: { name: containerd, state: restarted, enabled: true }
