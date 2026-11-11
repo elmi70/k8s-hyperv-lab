@@ -2,6 +2,10 @@
 
 Automated 3-node Kubernetes 1.37 lab on Windows Hyper-V with Packer, Vagrant, Ansible, kubeadm, Calico, MetalLB, Metrics Server, and Traefik Gateway API.
 
+## How it works
+
+![Animated workflow: image build, Hyper-V infrastructure, node configuration, Kubernetes](docs/images/lab-workflow.svg)
+
 ## Architecture
 
 ```mermaid

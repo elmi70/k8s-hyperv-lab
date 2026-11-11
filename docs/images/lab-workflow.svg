@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 600" width="1040" height="600" role="img" aria-labelledby="t d">
+<title id="t">k8s-hyperv-lab workflow</title>
+<desc id="d">Eleven steps from building the Ubuntu 26.04.1 Hyper-V Vagrant box with Packer, through creating the lab network and VMs, configuring nodes with Ansible, to a validated three-node Kubernetes cluster.</desc>
+<style>
+.bg { fill: #0d1117; }
+.title { font: 700 20px 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; fill: #f0f6fc; }
+.legend { font: 12px 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; fill: #c9d1d9; }
+.base { fill: #161b22; stroke-width: 2; stroke-opacity: .55; }
+.glow { opacity: 0; }
+.num { font: 700 13px 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; fill: #0d1117; }
+.h { font: 700 15px 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; fill: #f0f6fc; }
+.s { font: 12px 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; fill: #c9d1d9; }
+.flow { stroke: #6e7681; stroke-width: 2; fill: none; stroke-dasharray: 6 4; animation: dash 1s linear infinite; }
+.head { fill: #6e7681; }
+.pulse { animation: pulse 17.6s linear infinite; }
+@keyframes pulse {
+  0% { opacity: 0; }
+  0.727% { opacity: .38; }
+  7.727% { opacity: .38; }
+  9.546% { opacity: 0; }
+  100% { opacity: 0; }
+}
+@keyframes dash { to { stroke-dashoffset: -20; } }
+@media (prefers-reduced-motion: reduce) {
+  .flow, .pulse { animation: none; }
+}
+</style>
+<rect class="bg" width="1040" height="600" rx="14"/>
+<text class="title" x="35" y="42">k8s-hyperv-lab: from image build to a running cluster</text>
+<rect x="35" y="58" width="12" height="12" rx="3" fill="#58a6ff"/>
+<text class="legend" x="53" y="69">Image build</text>
+<rect x="158" y="58" width="12" height="12" rx="3" fill="#bc8cff"/>
+<text class="legend" x="176" y="69">Hyper-V infrastructure</text>
+<rect x="358" y="58" width="12" height="12" rx="3" fill="#39c5bb"/>
+<text class="legend" x="376" y="69">Node configuration</text>
+<rect x="530" y="58" width="12" height="12" rx="3" fill="#3fb950"/>
+<text class="legend" x="548" y="69">Kubernetes</text>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="head"/></marker></defs>
+<line class="flow" x1="255" y1="155.0" x2="285" y2="155.0" marker-end="url(#ah)"/>
+<line class="flow" x1="505" y1="155.0" x2="535" y2="155.0" marker-end="url(#ah)"/>
+<line class="flow" x1="755" y1="155.0" x2="785" y2="155.0" marker-end="url(#ah)"/>
+<line class="flow" x1="895.0" y1="210" x2="895.0" y2="270" marker-end="url(#ah)"/>
+<line class="flow" x1="785" y1="325.0" x2="755" y2="325.0" marker-end="url(#ah)"/>
+<line class="flow" x1="535" y1="325.0" x2="505" y2="325.0" marker-end="url(#ah)"/>
+<line class="flow" x1="285" y1="325.0" x2="255" y2="325.0" marker-end="url(#ah)"/>
+<line class="flow" x1="145.0" y1="380" x2="145.0" y2="440" marker-end="url(#ah)"/>
+<line class="flow" x1="255" y1="495.0" x2="285" y2="495.0" marker-end="url(#ah)"/>
+<line class="flow" x1="505" y1="495.0" x2="535" y2="495.0" marker-end="url(#ah)"/>
+<g>
+<rect class="base" x="35" y="100" width="220" height="110" rx="12" stroke="#58a6ff"/>
+<rect class="glow pulse" x="35" y="100" width="220" height="110" rx="12" fill="#58a6ff" style="animation-delay:0.0s"/>
+<circle cx="59" cy="126" r="12" fill="#58a6ff"/>
+<text class="num" x="59" y="131" text-anchor="middle">1</text>
+<text class="h" x="79" y="131">Packer build</text>
+<text class="s" x="51" y="164">26.04.1 ISO → autoinstall</text>
+<text class="s" x="51" y="184">→ Hyper-V Vagrant .box</text>
+</g>
+<g>
+<rect class="base" x="285" y="100" width="220" height="110" rx="12" stroke="#58a6ff"/>
+<rect class="glow pulse" x="285" y="100" width="220" height="110" rx="12" fill="#58a6ff" style="animation-delay:1.6s"/>
+<circle cx="309" cy="126" r="12" fill="#58a6ff"/>
+<text class="num" x="309" y="131" text-anchor="middle">2</text>
+<text class="h" x="329" y="131">Publish (optional)</text>
+<text class="s" x="301" y="164">gh release: .box + SHA256SUMS</text>
+<text class="s" x="301" y="184">Publish-K8sBoxRelease.ps1</text>
+</g>
+<g>
+<rect class="base" x="535" y="100" width="220" height="110" rx="12" stroke="#58a6ff"/>
+<rect class="glow pulse" x="535" y="100" width="220" height="110" rx="12" fill="#58a6ff" style="animation-delay:3.2s"/>
+<circle cx="559" cy="126" r="12" fill="#58a6ff"/>
+<text class="num" x="559" y="131" text-anchor="middle">3</text>
+<text class="h" x="579" y="131">Register box</text>
+<text class="s" x="551" y="164">vagrant box add</text>
+<text class="s" x="551" y="184">ubuntu2604-hyperv</text>
+</g>
+<g>
+<rect class="base" x="785" y="100" width="220" height="110" rx="12" stroke="#bc8cff"/>
+<rect class="glow pulse" x="785" y="100" width="220" height="110" rx="12" fill="#bc8cff" style="animation-delay:4.8s"/>
+<circle cx="809" cy="126" r="12" fill="#bc8cff"/>
+<text class="num" x="809" y="131" text-anchor="middle">4</text>
+<text class="h" x="829" y="131">Lab network</text>
+<text class="s" x="801" y="164">kube-lab-net + NAT</text>
+<text class="s" x="801" y="184">192.168.77.0/24</text>
+</g>
+<g>
+<rect class="base" x="785" y="270" width="220" height="110" rx="12" stroke="#bc8cff"/>
+<rect class="glow pulse" x="785" y="270" width="220" height="110" rx="12" fill="#bc8cff" style="animation-delay:6.4s"/>
+<circle cx="809" cy="296" r="12" fill="#bc8cff"/>
+<text class="num" x="809" y="301" text-anchor="middle">5</text>
+<text class="h" x="829" y="301">vagrant up</text>
+<text class="s" x="801" y="334">control1, worker1, worker2</text>
+<text class="s" x="801" y="354">on Default Switch (DHCP)</text>
+</g>
+<g>
+<rect class="base" x="535" y="270" width="220" height="110" rx="12" stroke="#bc8cff"/>
+<rect class="glow pulse" x="535" y="270" width="220" height="110" rx="12" fill="#bc8cff" style="animation-delay:8.0s"/>
+<circle cx="559" cy="296" r="12" fill="#bc8cff"/>
+<text class="num" x="559" y="301" text-anchor="middle">6</text>
+<text class="h" x="579" y="301">Static lab NICs</text>
+<text class="s" x="551" y="334">Add-K8sLabNic + netplan</text>
+<text class="s" x="551" y="354">192.168.77.11 / .12 / .13</text>
+</g>
+<g>
+<rect class="base" x="285" y="270" width="220" height="110" rx="12" stroke="#39c5bb"/>
+<rect class="glow pulse" x="285" y="270" width="220" height="110" rx="12" fill="#39c5bb" style="animation-delay:9.6s"/>
+<circle cx="309" cy="296" r="12" fill="#39c5bb"/>
+<text class="num" x="309" y="301" text-anchor="middle">7</text>
+<text class="h" x="329" y="301">Ansible inventory</text>
+<text class="s" x="301" y="334">vagrant ssh-config → hosts.yml</text>
+<text class="s" x="301" y="354">Ansible runs from WSL</text>
+</g>
+<g>
+<rect class="base" x="35" y="270" width="220" height="110" rx="12" stroke="#39c5bb"/>
+<rect class="glow pulse" x="35" y="270" width="220" height="110" rx="12" fill="#39c5bb" style="animation-delay:11.2s"/>
+<circle cx="59" cy="296" r="12" fill="#39c5bb"/>
+<text class="num" x="59" y="301" text-anchor="middle">8</text>
+<text class="h" x="79" y="301">Prepare nodes</text>
+<text class="s" x="51" y="334">swap, sysctl, containerd</text>
+<text class="s" x="51" y="354">kubeadm, crictl, etcdctl</text>
+</g>
+<g>
+<rect class="base" x="35" y="440" width="220" height="110" rx="12" stroke="#3fb950"/>
+<rect class="glow pulse" x="35" y="440" width="220" height="110" rx="12" fill="#3fb950" style="animation-delay:12.8s"/>
+<circle cx="59" cy="466" r="12" fill="#3fb950"/>
+<text class="num" x="59" y="471" text-anchor="middle">9</text>
+<text class="h" x="79" y="471">kubeadm init + join</text>
+<text class="s" x="51" y="504">control1 → worker1, worker2</text>
+<text class="s" x="51" y="524">-StopBeforeInit stops before</text>
+</g>
+<g>
+<rect class="base" x="285" y="440" width="220" height="110" rx="12" stroke="#3fb950"/>
+<rect class="glow pulse" x="285" y="440" width="220" height="110" rx="12" fill="#3fb950" style="animation-delay:14.4s"/>
+<circle cx="309" cy="466" r="12" fill="#3fb950"/>
+<text class="num" x="309" y="471" text-anchor="middle">10</text>
+<text class="h" x="329" y="471">Cluster add-ons</text>
+<text class="s" x="301" y="504">Calico, MetalLB, Traefik</text>
+<text class="s" x="301" y="524">Metrics Server, Gateway API</text>
+</g>
+<g>
+<rect class="base" x="535" y="440" width="220" height="110" rx="12" stroke="#3fb950"/>
+<rect class="glow pulse" x="535" y="440" width="220" height="110" rx="12" fill="#3fb950" style="animation-delay:16.0s"/>
+<circle cx="559" cy="466" r="12" fill="#3fb950"/>
+<text class="num" x="559" y="471" text-anchor="middle">11</text>
+<text class="h" x="579" y="471">Validate</text>
+<text class="s" x="551" y="504">nodes Ready, kubeconfig</text>
+<text class="s" x="551" y="524">copied to ~/.kube/config</text>
+</g>
+</svg>
