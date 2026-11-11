@@ -11,6 +11,17 @@ function Convert-ToWslPath([string]$Path, [string]$Distribution) {
   if($LASTEXITCODE -ne 0){throw "Could not convert path for WSL: $Path"}
   return ($result | Select-Object -First 1).Trim()
 }
+# Keys on /mnt/c appear world-accessible (mode 777) inside WSL, and ssh refuses such keys.
+# Copy each key into the distribution's home with mode 600 and point the inventory at the copy.
+$wslHome = (wsl.exe -d $WslDistribution -- bash -c 'echo $HOME' | Select-Object -First 1).Trim()
+if(-not $wslHome){throw "Could not determine the home directory in WSL distribution $WslDistribution"}
+function Install-WslKey([string]$WinPath, [string]$Node, [string]$Distribution, [string]$WslHome) {
+  $src = Convert-ToWslPath $WinPath $Distribution
+  $dest = "$WslHome/.ssh/k8s-lab/$Node"
+  wsl.exe -d $Distribution -- bash -c "install -D -m 600 '$src' '$dest'"
+  if($LASTEXITCODE -ne 0){throw "Could not copy the SSH key for $Node into WSL ($dest)"}
+  return $dest
+}
 $hosts=@{}
 Push-Location $vagrantDir
 try {
@@ -21,7 +32,7 @@ try {
     foreach($line in $raw){if($line -match '^\s*(\S+)\s+(.+)$'){$kv[$matches[1]]=$matches[2].Trim('"')}}
     $hosts[$node]=@{
       HostName=$kv['HostName']; Port=$kv['Port']; User=$kv['User']
-      IdentityFile=(Convert-ToWslPath $kv['IdentityFile'] $WslDistribution); LabIp=$labIps[$node]
+      IdentityFile=(Install-WslKey $kv['IdentityFile'] $node $WslDistribution $wslHome); LabIp=$labIps[$node]
     }
   }
 } finally { Pop-Location }

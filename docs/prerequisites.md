@@ -1,5 +1,14 @@
 # Prerequisites
 
+## Where to clone the repository
+
+Clone to a plain local path such as `C:\src\k8s-hyperv-lab`, **not** into OneDrive or another synced folder. The Packer build writes a multi-gigabyte `.box` and a build disk under `packer\output`, and Vagrant keeps state in `vagrant\.vagrant`; cloud sync can slow or interfere with both. Avoiding spaces in the path also avoids quoting problems in the scripts.
+
+## Resources
+
+- **RAM:** the three VMs use 16 GiB (see the sizing table in the README).
+- **Disk:** the Packer image disk is 32 GiB, and the VMs and checkpoints add more. Leave well over 100 GB free (this is a rough estimate, not a measured figure).
+
 ## Hyper-V
 
 From elevated PowerShell:
