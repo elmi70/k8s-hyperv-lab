@@ -4,7 +4,7 @@
 packer init .
 packer fmt -check -recursive .
 packer validate .
-packer build .
+packer build -force .
 vagrant box add ubuntu2604-hyperv .\output\ubuntu-26.04.1-hyperv.box
 ```
 

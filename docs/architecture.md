@@ -17,3 +17,5 @@ flowchart TB
  M --> T[Traefik Gateway API]
  K --> MS[Metrics Server]
 ```
+
+Component versions are defined once in `ansible/inventory/group_vars/all.yml`. See [Networking](networking.md) for the two-NIC network layout.

@@ -80,10 +80,10 @@ The default topology consumes 16 GiB of guest RAM, leaving roughly half of a 32 
 - [ ] Git installed
 - [ ] Packer installed
 - [ ] Vagrant installed
-- [ ] GitHub CLI (`gh`) installed
+- [ ] GitHub CLI (`gh`) installed (only needed to publish or download box releases)
 - [ ] `kubectl` installed
 - [ ] WSL 2 installed
-- [ ] Ubuntu WSL distribution installed
+- [ ] Ubuntu WSL distribution installed (default name `Ubuntu-26.04`; use `Deploy-K8sLab.ps1 -WslDistribution <name>` for another)
 - [ ] Ansible, Python 3 and SSH available inside WSL
 
 Verify Hyper-V:
@@ -122,6 +122,7 @@ Install commonly missing tools with WinGet:
 
 ```powershell
 winget install --id Hashicorp.Packer -e
+winget install --id Hashicorp.Vagrant -e
 winget install --id GitHub.cli -e
 winget install --id Kubernetes.kubectl -e
 ```
@@ -162,29 +163,31 @@ cd packer
 packer init .
 packer fmt -check -recursive .
 packer validate .
-packer build .
+packer build -force .
 vagrant box add ubuntu2604-hyperv .\output\ubuntu-26.04.1-hyperv.box
 cd ..
 ```
 
    If a release already exists, you can skip the build and download the published box instead (see [GitHub validation and releases](docs/github-releases.md)).
 
-3. Deploy the complete cluster from elevated PowerShell. This one command creates the lab network (`kube-lab-net`, 192.168.77.0/24), starts the VMs, attaches each VM's second NIC and assigns its static lab IP, then runs the Ansible playbooks:
+3. Deploy the complete cluster from elevated PowerShell:
 
 ```powershell
 .\powershell\Deploy-K8sLab.ps1
 ```
 
+The orchestrator creates the lab network (`kube-lab-net`, 192.168.77.0/24), starts the VMs, attaches each VM's second NIC and assigns its static lab IP, discovers SSH connection details from `vagrant ssh-config`, generates the Ansible inventory, configures all nodes, initializes kubeadm, joins workers, installs Calico, MetalLB, Metrics Server, Gateway API CRDs and Traefik, exports kubeconfig, and validates node readiness.
+
 Each VM has two NICs: the Hyper-V Default Switch (DHCP, used by Vagrant/SSH) and `kube-lab-net` (static `192.168.77.11-13`, used for Kubernetes). See [Networking](docs/networking.md).
 
-To prepare the nodes only and bootstrap the cluster yourself (for kubeadm practice or a clean "pre-cluster" snapshot), add `-StopBeforeInit`. It stops after containerd, kubeadm/kubelet/kubectl, crictl and the etcd tools are installed, before `kubeadm init`:
+To prepare the nodes only and bootstrap the cluster yourself (for kubeadm practice or a clean "pre-cluster" snapshot), add `-StopBeforeInit`. It runs everything up to and including the node tooling (OS preparation, containerd, kubeadm/kubelet/kubectl, crictl and the etcd tools) and stops before `kubeadm init`:
 
 ```powershell
 .\powershell\Deploy-K8sLab.ps1 -StopBeforeInit
-.\powershell\Save-K8sSnapshot.ps1
+.\powershell\Save-K8sSnapshot.ps1 -Name pre-cluster
 ```
 
-The orchestrator starts the VMs, discovers SSH connection details from `vagrant ssh-config`, generates the Ansible inventory, configures all nodes, initializes kubeadm, joins workers, installs Calico, MetalLB, Metrics Server, Gateway API CRDs and Traefik, exports kubeconfig, and validates node readiness.
+For the full order of scripts, including day-to-day start/stop, snapshots and repair, see the [Script runbook](docs/script-order.md).
 
 ## Post-deployment validation
 
@@ -213,11 +216,11 @@ For the complete layer-by-layer acceptance runbook, including north-south traffi
 
 GitHub Actions uses `ubuntu-latest` only for source validation through `.github/workflows/validate.yml`. The Hyper-V Vagrant box is built locally on the Windows Hyper-V host.
 
-Build and publish the box in one step from an elevated PowerShell 7 session at the repository root:
+Build and publish the box in one step from the repository root. `-Build` drives Packer and Hyper-V, so it needs an **elevated** PowerShell 7 session; publishing an already-built box does not:
 
 ```powershell
-.\powershell\Publish-K8sBoxRelease.ps1 -Build -Register   # tag auto-increments
-.\powershell\Publish-K8sBoxRelease.ps1 -Build -Tag v1.2.0 # explicit tag
+.\powershell\Publish-K8sBoxRelease.ps1 -Build -Register   # elevated; tag auto-increments
+.\powershell\Publish-K8sBoxRelease.ps1 -Build -Tag v1.2.0 # elevated; explicit tag
 .\powershell\Publish-K8sBoxRelease.ps1 -Tag v1.0.0        # publish an already-built box
 ```
 
@@ -226,6 +229,7 @@ The helper requires `gh auth login`, refuses boxes of 2 GiB or more (the GitHub 
 ## Documentation
 
 - [Prerequisites](docs/prerequisites.md)
+- [Script runbook (what to run, in order)](docs/script-order.md)
 - [Architecture](docs/architecture.md)
 - [Image build](docs/image-build.md)
 - [Networking](docs/networking.md)
@@ -242,14 +246,24 @@ The helper requires `gh auth login`, refuses boxes of 2 GiB or more (the GitHub 
 k8s-hyperv-lab/
 ├── .github/workflows/validate.yml
 ├── ansible/
+│   ├── inventory/          # group_vars/all.yml: versions and CIDRs
+│   ├── playbooks/
+│   └── templates/
 ├── docs/
+│   └── images/
 ├── kubernetes/
-│   └── calico/
+│   ├── calico/
+│   ├── metallb/
+│   └── traefik/
 ├── packer/
 ├── powershell/
 ├── vagrant/
+│   └── scripts/
+├── .gitattributes
 ├── .gitignore
+├── .yamllint.yml
 ├── LICENSE
+├── PSScriptAnalyzerSettings.psd1
 └── README.md
 ```
 

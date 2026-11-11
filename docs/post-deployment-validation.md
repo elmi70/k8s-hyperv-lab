@@ -2,6 +2,8 @@
 
 Use this runbook after the initial deployment, after restoring a Hyper-V checkpoint, or after making cluster/networking changes.
 
+Expected component versions below match the pins in `ansible/inventory/group_vars/all.yml`; update this runbook when you change them.
+
 ## 1. Kubernetes nodes
 
 From Windows PowerShell:

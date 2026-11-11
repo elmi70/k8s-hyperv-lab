@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1092 646" width="1092" height="646" role="img" aria-labelledby="t d">
+<title id="t">k8s-hyperv-lab script order</title>
+<desc id="d">The order to run the PowerShell scripts: Test-K8sLabReady, Publish-K8sBoxRelease, then Deploy-K8sLab, which runs the network, Vagrant, NIC, inventory and Ansible playbook steps, then verify with kubectl. Day-to-day scripts are listed below.</desc>
+<style>
+.bg { fill: #0d1117; }
+.title { font: 700 20px 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; fill: #f0f6fc; }
+.legend { font: 12px 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; fill: #c9d1d9; }
+.base { fill: #161b22; stroke-width: 2; stroke-opacity: .55; }
+.glow { opacity: 0; }
+.num { font: 700 13px 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; fill: #0d1117; }
+.h { font: 700 13.5px 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; fill: #f0f6fc; }
+.s { font: 12px 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; fill: #c9d1d9; }
+.strip { fill: #161b22; stroke: #30363d; stroke-width: 1.5; }
+.striph { font: 700 12px 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; fill: #f0f6fc; }
+.flow { stroke: #6e7681; stroke-width: 2; fill: none; stroke-dasharray: 6 4; animation: dash 1s linear infinite; }
+.head { fill: #6e7681; }
+.pulse { animation: pulse 17.6s linear infinite; }
+@keyframes pulse {
+  0% { opacity: 0; }
+  0.727% { opacity: .38; }
+  7.727% { opacity: .38; }
+  9.546% { opacity: 0; }
+  100% { opacity: 0; }
+}
+@keyframes dash { to { stroke-dashoffset: -20; } }
+@media (prefers-reduced-motion: reduce) {
+  .flow, .pulse { animation: none; }
+}
+</style>
+<rect class="bg" width="1092" height="646" rx="14"/>
+<text class="title" x="30" y="42">k8s-hyperv-lab: which script to run, in order</text>
+<rect x="30" y="58" width="12" height="12" rx="3" fill="#58a6ff"/>
+<text class="legend" x="48" y="69">You run</text>
+<rect x="125" y="58" width="12" height="12" rx="3" fill="#bc8cff"/>
+<text class="legend" x="143" y="69">Deploy-K8sLab.ps1 steps</text>
+<rect x="332" y="58" width="12" height="12" rx="3" fill="#39c5bb"/>
+<text class="legend" x="350" y="69">Ansible playbooks (via Deploy)</text>
+<text class="legend" x="1062" y="69" text-anchor="end">scripts are in powershell\ (shown without .ps1)</text>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="head"/></marker></defs>
+<line class="flow" x1="270" y1="155.0" x2="294" y2="155.0" marker-end="url(#ah)"/>
+<line class="flow" x1="534" y1="155.0" x2="558" y2="155.0" marker-end="url(#ah)"/>
+<line class="flow" x1="798" y1="155.0" x2="822" y2="155.0" marker-end="url(#ah)"/>
+<line class="flow" x1="942.0" y1="210" x2="942.0" y2="270" marker-end="url(#ah)"/>
+<line class="flow" x1="822" y1="325.0" x2="798" y2="325.0" marker-end="url(#ah)"/>
+<line class="flow" x1="558" y1="325.0" x2="534" y2="325.0" marker-end="url(#ah)"/>
+<line class="flow" x1="294" y1="325.0" x2="270" y2="325.0" marker-end="url(#ah)"/>
+<line class="flow" x1="150.0" y1="380" x2="150.0" y2="440" marker-end="url(#ah)"/>
+<line class="flow" x1="270" y1="495.0" x2="294" y2="495.0" marker-end="url(#ah)"/>
+<line class="flow" x1="534" y1="495.0" x2="558" y2="495.0" marker-end="url(#ah)"/>
+<g>
+<rect class="base" x="30" y="100" width="240" height="110" rx="12" stroke="#58a6ff"/>
+<rect class="glow pulse" x="30" y="100" width="240" height="110" rx="12" fill="#58a6ff" style="animation-delay:0.0s"/>
+<circle cx="54" cy="126" r="12" fill="#58a6ff"/>
+<text class="num" x="54" y="131" text-anchor="middle">1</text>
+<text class="h" x="74" y="131">Test-K8sLabReady</text>
+<text class="s" x="46" y="164">host preflight: vmms + tools</text>
+<text class="s" x="46" y="184">(once per machine)</text>
+</g>
+<g>
+<rect class="base" x="294" y="100" width="240" height="110" rx="12" stroke="#58a6ff"/>
+<rect class="glow pulse" x="294" y="100" width="240" height="110" rx="12" fill="#58a6ff" style="animation-delay:1.6s"/>
+<circle cx="318" cy="126" r="12" fill="#58a6ff"/>
+<text class="num" x="318" y="131" text-anchor="middle">2</text>
+<text class="h" x="338" y="131">Publish-K8sBoxRelease</text>
+<text class="s" x="310" y="164">-Build -Register: Packer build,</text>
+<text class="s" x="310" y="184">release + vagrant box add</text>
+</g>
+<g>
+<rect class="base" x="558" y="100" width="240" height="110" rx="12" stroke="#58a6ff"/>
+<rect class="glow pulse" x="558" y="100" width="240" height="110" rx="12" fill="#58a6ff" style="animation-delay:3.2s"/>
+<circle cx="582" cy="126" r="12" fill="#58a6ff"/>
+<text class="num" x="582" y="131" text-anchor="middle">3</text>
+<text class="h" x="602" y="131">Deploy-K8sLab</text>
+<text class="s" x="574" y="164">one command, runs steps 4-10</text>
+<text class="s" x="574" y="184">-StopBeforeInit stops after 8</text>
+</g>
+<g>
+<rect class="base" x="822" y="100" width="240" height="110" rx="12" stroke="#bc8cff"/>
+<rect class="glow pulse" x="822" y="100" width="240" height="110" rx="12" fill="#bc8cff" style="animation-delay:4.8s"/>
+<circle cx="846" cy="126" r="12" fill="#bc8cff"/>
+<text class="num" x="846" y="131" text-anchor="middle">4</text>
+<text class="h" x="866" y="131">New-K8sLabNetwork</text>
+<text class="s" x="838" y="164">kube-lab-net switch + NAT</text>
+<text class="s" x="838" y="184">subnet collision preflight</text>
+</g>
+<g>
+<rect class="base" x="822" y="270" width="240" height="110" rx="12" stroke="#bc8cff"/>
+<rect class="glow pulse" x="822" y="270" width="240" height="110" rx="12" fill="#bc8cff" style="animation-delay:6.4s"/>
+<circle cx="846" cy="296" r="12" fill="#bc8cff"/>
+<text class="num" x="846" y="301" text-anchor="middle">5</text>
+<text class="h" x="866" y="301">vagrant up</text>
+<text class="s" x="838" y="334">3 VMs on the Default Switch</text>
+<text class="s" x="838" y="354">(DHCP management NIC)</text>
+</g>
+<g>
+<rect class="base" x="558" y="270" width="240" height="110" rx="12" stroke="#bc8cff"/>
+<rect class="glow pulse" x="558" y="270" width="240" height="110" rx="12" fill="#bc8cff" style="animation-delay:8.0s"/>
+<circle cx="582" cy="296" r="12" fill="#bc8cff"/>
+<text class="num" x="582" y="301" text-anchor="middle">6</text>
+<text class="h" x="602" y="301">Add-K8sLabNic</text>
+<text class="s" x="574" y="334">2nd NIC on kube-lab-net, then</text>
+<text class="s" x="574" y="354">vagrant provision: static IPs</text>
+</g>
+<g>
+<rect class="base" x="294" y="270" width="240" height="110" rx="12" stroke="#bc8cff"/>
+<rect class="glow pulse" x="294" y="270" width="240" height="110" rx="12" fill="#bc8cff" style="animation-delay:9.6s"/>
+<circle cx="318" cy="296" r="12" fill="#bc8cff"/>
+<text class="num" x="318" y="301" text-anchor="middle">7</text>
+<text class="h" x="338" y="301">New-K8sAnsibleInventory</text>
+<text class="s" x="310" y="334">vagrant ssh-config → hosts.yml</text>
+<text class="s" x="310" y="354">Ansible runs from WSL</text>
+</g>
+<g>
+<rect class="base" x="30" y="270" width="240" height="110" rx="12" stroke="#39c5bb"/>
+<rect class="glow pulse" x="30" y="270" width="240" height="110" rx="12" fill="#39c5bb" style="animation-delay:11.2s"/>
+<circle cx="54" cy="296" r="12" fill="#39c5bb"/>
+<text class="num" x="54" y="301" text-anchor="middle">8</text>
+<text class="h" x="74" y="301">Playbooks 1-4</text>
+<text class="s" x="46" y="334">preflight, prerequisites,</text>
+<text class="s" x="46" y="354">kubernetes-packages, node-tools</text>
+</g>
+<g>
+<rect class="base" x="30" y="440" width="240" height="110" rx="12" stroke="#39c5bb"/>
+<rect class="glow pulse" x="30" y="440" width="240" height="110" rx="12" fill="#39c5bb" style="animation-delay:12.8s"/>
+<circle cx="54" cy="466" r="12" fill="#39c5bb"/>
+<text class="num" x="54" y="471" text-anchor="middle">9</text>
+<text class="h" x="74" y="471">Playbooks 5-7</text>
+<text class="s" x="46" y="504">bootstrap-cluster (init + join),</text>
+<text class="s" x="46" y="524">install-cni, install-metallb</text>
+</g>
+<g>
+<rect class="base" x="294" y="440" width="240" height="110" rx="12" stroke="#39c5bb"/>
+<rect class="glow pulse" x="294" y="440" width="240" height="110" rx="12" fill="#39c5bb" style="animation-delay:14.4s"/>
+<circle cx="318" cy="466" r="12" fill="#39c5bb"/>
+<text class="num" x="318" y="471" text-anchor="middle">10</text>
+<text class="h" x="338" y="471">Playbooks 8-10</text>
+<text class="s" x="310" y="504">metrics-server, traefik,</text>
+<text class="s" x="310" y="524">validate-cluster</text>
+</g>
+<g>
+<rect class="base" x="558" y="440" width="240" height="110" rx="12" stroke="#58a6ff"/>
+<rect class="glow pulse" x="558" y="440" width="240" height="110" rx="12" fill="#58a6ff" style="animation-delay:16.0s"/>
+<circle cx="582" cy="466" r="12" fill="#58a6ff"/>
+<text class="num" x="582" y="471" text-anchor="middle">11</text>
+<text class="h" x="602" y="471">kubectl get nodes</text>
+<text class="s" x="574" y="504">you verify: all 3 Ready</text>
+<text class="s" x="574" y="524">kubeconfig in ~/.kube/config</text>
+</g>
+<rect class="strip" x="30" y="570" width="1032" height="56" rx="10"/>
+<text class="striph" x="46" y="592">Day to day</text>
+<text class="s" x="46" y="612">Stop-K8sLab · Start-K8sLab · Get-K8sLabStatus · Save/Get/Restore/Remove-K8sSnapshot -Name &lt;n&gt; · Repair-K8sLabNetwork · Remove-K8sLab</text>
+</svg>

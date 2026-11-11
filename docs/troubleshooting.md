@@ -6,6 +6,7 @@ Use `Get-Command <tool>` first. For commonly missing tools:
 
 ```powershell
 winget install --id Hashicorp.Packer -e
+winget install --id Hashicorp.Vagrant -e
 winget install --id GitHub.cli -e
 winget install --id Kubernetes.kubectl -e
 ```
@@ -45,7 +46,12 @@ If `New-K8sLabNetwork.ps1` reports that `192.168.77.0/24` is already routed thro
 
 ## Box check fails or the box is missing
 
-`Deploy-K8sLab.ps1` requires the `ubuntu2604-hyperv` box. Build it with `.\powershell\Publish-K8sBoxRelease.ps1 -Build -Register` or follow [Image build](image-build.md). Use `-SkipBoxCheck` only if the box is registered under another name.
+`Deploy-K8sLab.ps1` requires the `ubuntu2604-hyperv` box. Build it with `.\powershell\Publish-K8sBoxRelease.ps1 -Build -Register` or follow [Image build](image-build.md). To use a box registered under another name, set `K8S_LAB_BOX` (read by the Vagrantfile) and skip the name check:
+
+```powershell
+$env:K8S_LAB_BOX = 'my-box-name'
+.\powershell\Deploy-K8sLab.ps1 -SkipBoxCheck
+```
 
 ## Package or download failures during deployment
 

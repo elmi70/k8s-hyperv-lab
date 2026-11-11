@@ -47,6 +47,7 @@ Install commonly missing tools:
 
 ```powershell
 winget install --id Hashicorp.Packer -e
+winget install --id Hashicorp.Vagrant -e
 winget install --id GitHub.cli -e
 winget install --id Kubernetes.kubectl -e
 ```
@@ -65,6 +66,10 @@ wsl --list --verbose
 
 ## WSL Ubuntu
 
+`Deploy-K8sLab.ps1` runs Ansible in the WSL distribution named `Ubuntu-26.04` by default (check with `wsl --list --verbose`). For a different distribution, pass `-WslDistribution <name>` to `Deploy-K8sLab.ps1` (and to `New-K8sAnsibleInventory.ps1` if you run it directly).
+
+Inside the distribution:
+
 ```bash
 for tool in ansible python3 ssh; do
   printf "%-10s " "$tool"
@@ -80,6 +85,8 @@ sudo apt install -y ansible
 ```
 
 ## GitHub
+
+The GitHub CLI is only needed to publish or download box releases (see [GitHub validation and releases](github-releases.md)); deploying the lab does not use it.
 
 ```powershell
 gh auth login
