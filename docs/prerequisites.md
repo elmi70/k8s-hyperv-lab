@@ -45,7 +45,7 @@ Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-All
 ## Windows tools
 
 ```powershell
-$tools = @("git", "gh", "packer", "vagrant", "kubectl", "wsl")
+$tools = @("git", "gh", "packer", "oscdimg", "vagrant", "kubectl", "wsl")
 foreach ($tool in $tools) {
   Write-Host "`n=== $tool ===" -ForegroundColor Cyan
   Get-Command $tool -ErrorAction SilentlyContinue | Select-Object Name, Source
@@ -56,10 +56,13 @@ Install commonly missing tools:
 
 ```powershell
 winget install --id Hashicorp.Packer -e
+winget install --id Microsoft.OSCDIMG -e
 winget install --id Hashicorp.Vagrant -e
 winget install --id GitHub.cli -e
 winget install --id Kubernetes.kubectl -e
 ```
+
+`oscdimg` is only needed to build the box locally. Packer calls it to create the small ISO that carries the Ubuntu autoinstall files (`user-data`, `meta-data`); without it `packer build` fails with "could not find a supported CD ISO creation command". Open a new terminal after installing so PATH updates.
 
 Verify:
 

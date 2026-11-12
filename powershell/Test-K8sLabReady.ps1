@@ -14,6 +14,9 @@ $notes = @()
 if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
   $notes += 'gh not found: only needed to publish or download box releases.'
 }
+if (-not (Get-Command oscdimg -ErrorAction SilentlyContinue)) {
+  $notes += 'oscdimg not found: only needed to build the box locally (winget install Microsoft.OSCDIMG).'
+}
 if (-not (Get-VMSwitch -Name 'kube-lab-net' -ErrorAction SilentlyContinue)) {
   $notes += "Switch 'kube-lab-net' not found: Deploy-K8sLab.ps1 creates it."
 }

@@ -99,6 +99,7 @@ then run `wsl --shutdown` to apply it. These sizes are estimates for a lab, not 
 - [ ] PowerShell 7 installed
 - [ ] Git installed
 - [ ] Packer installed
+- [ ] `oscdimg` installed (only needed to build the box locally; Packer uses it to create the autoinstall seed ISO)
 - [ ] Vagrant installed
 - [ ] GitHub CLI (`gh`) installed (only needed to publish or download box releases)
 - [ ] `kubectl` installed
@@ -119,7 +120,7 @@ systeminfo | Select-String "hypervisor"
 Verify required commands:
 
 ```powershell
-$tools = @("git", "gh", "packer", "vagrant", "kubectl", "wsl")
+$tools = @("git", "gh", "packer", "oscdimg", "vagrant", "kubectl", "wsl")
 foreach ($tool in $tools) {
     Write-Host "`n=== $tool ===" -ForegroundColor Cyan
     Get-Command $tool -ErrorAction SilentlyContinue | Select-Object Name, Source
@@ -142,6 +143,7 @@ Install commonly missing tools with WinGet:
 
 ```powershell
 winget install --id Hashicorp.Packer -e
+winget install --id Microsoft.OSCDIMG -e
 winget install --id Hashicorp.Vagrant -e
 winget install --id GitHub.cli -e
 winget install --id Kubernetes.kubectl -e
