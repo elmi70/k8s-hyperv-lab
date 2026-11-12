@@ -30,6 +30,7 @@ try {
     Start-Sleep -Seconds 10
   }
 } finally { Pop-Location }
+& "$PSScriptRoot\Enable-K8sLabWslRouting.ps1" -WslDistribution $WslDistribution
 & "$PSScriptRoot\New-K8sAnsibleInventory.ps1" -WslDistribution $WslDistribution
 # wsl.exe passes arguments through a Linux shell, which eats backslashes (C:\labs -> C:labs),
 # so hand wslpath a forward-slash path.

@@ -106,7 +106,7 @@ then run `wsl --shutdown` to apply it. These sizes are estimates for a lab, not 
 - [ ] WSL 2 installed
 - [ ] Ubuntu WSL distribution installed (default name `Ubuntu-26.04`; use `Deploy-K8sLab.ps1 -WslDistribution <name>` for another)
 - [ ] Ansible, Python 3 and SSH available inside WSL
-- [ ] WSL 2 can reach the Hyper-V switches (IP forwarding enabled on the `vEthernet` interfaces; without it the deploy stops at the Ansible connectivity check with `Connection timed out`). See [WSL must be able to reach the Hyper-V switches](docs/prerequisites.md#wsl-must-be-able-to-reach-the-hyper-v-switches)
+- [ ] WSL 2 can reach the Hyper-V switches. `Deploy-K8sLab.ps1` enables the required IP forwarding on the `vEthernet` interfaces itself (`powershell\Enable-K8sLabWslRouting.ps1`); see [WSL must be able to reach the Hyper-V switches](docs/prerequisites.md#wsl-must-be-able-to-reach-the-hyper-v-switches) if the Ansible connectivity check still times out
 
 Verify Hyper-V:
 
@@ -191,7 +191,7 @@ vagrant box add ubuntu2604-hyperv .\output\ubuntu-26.04.1-hyperv.box
 cd ..
 ```
 
-   The build needs an elevated session and `oscdimg` (see [Image build](docs/image-build.md#requirements-for-the-build)) and takes roughly 7 minutes once the ISO is cached. If a release already exists, you can skip the build and download the published box instead (see [GitHub validation and releases](docs/github-releases.md)). Note that the current box is about 2.6 GiB, over GitHub's 2 GiB per-file release limit, so a release may not exist yet.
+   The build needs an elevated session and `oscdimg` (see [Image build](docs/image-build.md#requirements-for-the-build)) and takes roughly 7 minutes once the ISO is cached. If a release already exists, you can skip the build and download the published box instead (see [GitHub validation and releases](docs/github-releases.md)). The first box built was about 2.6 GiB, over GitHub's 2 GiB per-file release limit, so a release may not exist yet.
 
 3. Deploy the complete cluster from elevated PowerShell:
 
@@ -249,7 +249,7 @@ Maintainers can build and publish the box in one step from the repository root (
 .\powershell\Publish-K8sBoxRelease.ps1 -Tag v1.0.0        # publish an already-built box
 ```
 
-The helper requires `gh auth login`, refuses boxes of 2 GiB or more (the GitHub Releases per-file limit; the box built from the current template is about 2.6 GiB, so this currently stops, see [Image build](docs/image-build.md#box-size-and-github-releases)), writes `SHA256SUMS`, and creates or updates a GitHub Release containing the box and checksum. Details: [GitHub validation and releases](docs/github-releases.md).
+The helper requires `gh auth login`, refuses boxes of 2 GiB or more (the GitHub Releases per-file limit; the first box built from the template was 2.6 GiB, so check the size first, see [Image build](docs/image-build.md#box-size-and-github-releases)), writes `SHA256SUMS`, and creates or updates a GitHub Release containing the box and checksum. Details: [GitHub validation and releases](docs/github-releases.md).
 
 ## Documentation
 

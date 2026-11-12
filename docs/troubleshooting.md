@@ -96,11 +96,11 @@ See [Networking](networking.md): the lab netplan id must sort before the box's c
 
 ## Ansible connectivity check fails: `ssh: connect to host 172.24.x.x port 22: Connection timed out`
 
-The VMs are running but WSL 2 cannot reach the Hyper-V switches. Enable IP forwarding on the `vEthernet` interfaces and re-run the deploy; see [Prerequisites](prerequisites.md#wsl-must-be-able-to-reach-the-hyper-v-switches). The setting can be lost after a restart of Windows or WSL.
+The VMs are running but WSL 2 cannot reach the Hyper-V switches. `Deploy-K8sLab.ps1` normally enables IP forwarding on the `vEthernet` interfaces itself (`powershell\Enable-K8sLabWslRouting.ps1`). If you still see the timeout, run that script from an elevated PowerShell 7 window and check that all three interfaces report forwarding enabled; see [Prerequisites](prerequisites.md#wsl-must-be-able-to-reach-the-hyper-v-switches).
 
 ## Publishing the box fails: "Box is 2.xx GiB; GitHub Releases allows files under 2 GiB"
 
-The current image is about 2.6 GiB. See [Image build](image-build.md#box-size-and-github-releases).
+The first image built was 2.62 GiB (the template has since been trimmed but not re-measured). See [Image build](image-build.md#box-size-and-github-releases).
 
 ## Layered diagnosis
 

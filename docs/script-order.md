@@ -22,9 +22,10 @@ You do not run these yourself, but this is the order they execute in:
 2. `vagrant up --provider=hyperv`: creates the three VMs on the Default Switch.
 3. `Add-K8sLabNic.ps1`: adds the second NIC on `kube-lab-net`.
 4. `vagrant provision --provision-with lab-net`: assigns the static `192.168.77.x` addresses (idempotent; retried up to three times).
-5. `New-K8sAnsibleInventory.ps1`: builds the Ansible inventory from `vagrant ssh-config` and copies each node's SSH key into WSL with mode 600.
-6. An Ansible connectivity check from WSL (`ansible all -m ping`). If this times out, WSL cannot reach the Hyper-V switches; see [Prerequisites](prerequisites.md#wsl-must-be-able-to-reach-the-hyper-v-switches). Then the Ansible playbooks, in this order: `preflight`, `prerequisites`, `kubernetes-packages`, `install-node-tools`, `bootstrap-cluster`, `install-cni`, `install-metallb`, `install-metrics-server`, `install-local-path`, `install-traefik`, `validate-cluster`.
-7. Copies the kubeconfig to `~/.kube/config`.
+5. `Enable-K8sLabWslRouting.ps1`: starts the WSL distribution and enables IP forwarding on the WSL, Default Switch and `kube-lab-net` interfaces so Ansible in WSL can reach the VMs (idempotent).
+6. `New-K8sAnsibleInventory.ps1`: builds the Ansible inventory from `vagrant ssh-config` and copies each node's SSH key into WSL with mode 600.
+7. An Ansible connectivity check from WSL (`ansible all -m ping`). If this times out, WSL still cannot reach the Hyper-V switches; see [Prerequisites](prerequisites.md#wsl-must-be-able-to-reach-the-hyper-v-switches). Then the Ansible playbooks, in this order: `preflight`, `prerequisites`, `kubernetes-packages`, `install-node-tools`, `bootstrap-cluster`, `install-cni`, `install-metallb`, `install-metrics-server`, `install-local-path`, `install-traefik`, `validate-cluster`.
+8. Copies the kubeconfig to `~/.kube/config`.
 
 ## Day to day
 

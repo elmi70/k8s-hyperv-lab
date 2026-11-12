@@ -112,7 +112,13 @@ sudo apt install -y ansible
 
 Ansible runs inside WSL 2, which sits on its own NAT network (for example `172.30.64.0/20`), while the VMs are on the Hyper-V Default Switch (`172.24.x.x`, used for SSH) and `kube-lab-net` (`192.168.77.0/24`). Windows does not forward packets between those switches by default, so the deploy can stop at the Ansible connectivity check with `ssh: connect to host 172.24.x.x port 22: Connection timed out` even though the VMs are running.
 
-On the lab host, enabling IP forwarding on the three `vEthernet` interfaces fixed this. Run once from an elevated PowerShell 7 window after the lab switch exists (`Deploy-K8sLab.ps1` creates it), then re-run the deploy:
+Enabling IP forwarding on the three `vEthernet` interfaces (WSL, Default Switch and `kube-lab-net`) fixes this. `Deploy-K8sLab.ps1` does it for you: it runs `powershell\Enable-K8sLabWslRouting.ps1`, which starts the WSL distribution (so its interface exists) and enables forwarding on any of those interfaces that do not have it yet. The script is idempotent and needs the elevated session you already use. You can also run it on its own:
+
+```powershell
+.\powershell\Enable-K8sLabWslRouting.ps1
+```
+
+The manual equivalent is:
 
 ```powershell
 Get-NetIPInterface -AddressFamily IPv4 |
@@ -120,7 +126,7 @@ Get-NetIPInterface -AddressFamily IPv4 |
   Set-NetIPInterface -Forwarding Enabled
 ```
 
-The setting may be reset when Windows or WSL restarts; repeat the command if the timeout returns. If forwarding is not enough, WSL's mirrored networking mode (`networkingMode=mirrored` in `%UserProfile%\.wslconfig`) is an alternative that I have not tested with this lab.
+Windows or WSL may reset the setting on restart; every deploy re-applies it, and you can re-run the script if the timeout returns later (for example after a reboot, when you start the lab with `Start-K8sLab.ps1` and use Ansible by hand). If forwarding is not enough, WSL's mirrored networking mode (`networkingMode=mirrored` in `%UserProfile%\.wslconfig`) is an alternative that I have not tested with this lab.
 
 ### Optional: cap WSL memory
 

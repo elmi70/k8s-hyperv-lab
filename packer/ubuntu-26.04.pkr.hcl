@@ -57,6 +57,7 @@ build {
     scripts = ["scripts/setup.sh"]
   }
   post-processor "vagrant" {
-    output = "output/ubuntu-26.04.1-hyperv.box"
+    output            = "output/ubuntu-26.04.1-hyperv.box"
+    compression_level = 9
   }
 }

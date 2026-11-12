@@ -38,7 +38,7 @@ Publishing needs write access to the repository, so it is meant for maintainers.
 
 The script checks `gh` authentication, optionally runs `packer init/fmt/validate/build -force`, refuses boxes of 2 GiB or more (the GitHub Releases per-file limit), writes `SHA256SUMS`, and creates or updates the release. Re-running with an existing tag replaces the assets. `-Register` also adds the box to Vagrant on this machine. `-Build` also needs `oscdimg` (see [Image build](image-build.md#requirements-for-the-build)).
 
-> **Known limitation:** the box produced by the current template is about 2.6 GiB, which is over the limit, so the script stops with `Box is 2.xx GiB; GitHub Releases allows files under 2 GiB` before creating a release. See [Image build](image-build.md#box-size-and-github-releases) for the options. The "published box" instructions below only work once a release with a smaller (or otherwise hosted) box exists.
+> **Check the size first:** the first box built from this template was 2.62 GiB, over the limit, and the script stops with `Box is 2.xx GiB; GitHub Releases allows files under 2 GiB` before creating a release. The template has since been trimmed (see [Image build](image-build.md#box-size-and-github-releases)), but the new size has not been measured. The "published box" instructions below only work once a release with a box under the limit exists.
 
 A release contains `ubuntu-26.04.1-hyperv.box` and `SHA256SUMS`.
 

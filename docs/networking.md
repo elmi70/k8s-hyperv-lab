@@ -35,7 +35,7 @@ Two details of that script matter:
 
 ### Reaching the VMs from WSL
 
-Ansible runs in WSL 2 and connects to each VM over the **Default Switch** address (`eth0`, `172.24.x.x`; these addresses change between boots and the inventory is regenerated on every deploy). WSL 2 uses a separate NAT network, and Windows does not forward packets between the WSL, Default Switch and `kube-lab-net` interfaces unless IP forwarding is enabled on them. See [Prerequisites](prerequisites.md#wsl-must-be-able-to-reach-the-hyper-v-switches) for the command and [Troubleshooting](troubleshooting.md).
+Ansible runs in WSL 2 and connects to each VM over the **Default Switch** address (`eth0`, `172.24.x.x`; these addresses change between boots and the inventory is regenerated on every deploy). WSL 2 uses a separate NAT network, and Windows does not forward packets between the WSL, Default Switch and `kube-lab-net` interfaces unless IP forwarding is enabled on them. `Deploy-K8sLab.ps1` enables it by running `powershell/Enable-K8sLabWslRouting.ps1` before the Ansible step. See [Prerequisites](prerequisites.md#wsl-must-be-able-to-reach-the-hyper-v-switches) and [Troubleshooting](troubleshooting.md).
 
 Environment variables read by the Vagrantfile: `K8S_LAB_MGMT_SWITCH` (management switch, default `Default Switch`), `K8S_LAB_BOX` (box name, default `ubuntu2604-hyperv`), and `K8S_LAB_CONTROL_MEMORY_MB` / `K8S_LAB_WORKER_MEMORY_MB` (VM memory in MiB, defaults 4096 and 6144).
 

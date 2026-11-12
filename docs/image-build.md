@@ -70,7 +70,15 @@ A successful build takes roughly 7 minutes once the ISO is cached in `packer\pac
 
 ## Box size and GitHub Releases
 
-The box built from this template is about **2.6 GiB** (2,815,494,777 bytes in the last build). GitHub Releases allows files under 2 GiB, so `Publish-K8sBoxRelease.ps1` currently refuses it. Until the image is slimmed down (for example by purging the unused kernel, headers and ZFS packages the installer leaves behind, which `apt` reports as "no longer required") or hosted elsewhere, share the box through another file host and keep using the local build for your own lab. See [GitHub validation and releases](github-releases.md).
+GitHub Releases allows files under 2 GiB, and `Publish-K8sBoxRelease.ps1` refuses anything larger. The first build from this template was **2.62 GiB** (2,815,494,777 bytes), over the limit.
+
+To shrink it, `scripts/setup.sh` now runs `apt-get autoremove --purge` (the installer leaves an older kernel, headers, ZFS modules and tools that `apt` reports as "no longer required"), deletes the apt package lists, and the `vagrant` post-processor uses `compression_level = 9`. **I have not rebuilt with these changes, so the new size is unmeasured and may still be over 2 GiB.** After a rebuild, check it:
+
+```powershell
+(Get-Item .\packer\output\ubuntu-26.04.1-hyperv.box).Length / 1GB
+```
+
+If it is still 2 GiB or more, host the box somewhere other than GitHub Releases (the local build is unaffected) or slim the image further. See [GitHub validation and releases](github-releases.md).
 
 ## Troubleshooting the build
 
