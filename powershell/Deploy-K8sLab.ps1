@@ -20,8 +20,15 @@ try {
   vagrant up --provider=hyperv
   if($LASTEXITCODE -ne 0){throw "vagrant up failed with exit code $LASTEXITCODE"}
   & "$PSScriptRoot\Add-K8sLabNic.ps1"
-  vagrant provision --provision-with lab-net
-  if($LASTEXITCODE -ne 0){throw "Static lab NIC provisioning failed with exit code $LASTEXITCODE"}
+  # `netplan apply` can drop the SSH session mid-run even though the config is applied. The
+  # provisioner is idempotent, so retry a few times before giving up.
+  foreach($attempt in 1..3){
+    vagrant provision --provision-with lab-net
+    if($LASTEXITCODE -eq 0){break}
+    if($attempt -eq 3){throw "Static lab NIC provisioning failed with exit code $LASTEXITCODE"}
+    Write-Warning "Static lab NIC provisioning failed (attempt $attempt of 3); retrying in 10 seconds."
+    Start-Sleep -Seconds 10
+  }
 } finally { Pop-Location }
 & "$PSScriptRoot\New-K8sAnsibleInventory.ps1" -WslDistribution $WslDistribution
 $wslRoot=(wsl.exe -d $WslDistribution -- wslpath -a $root | Select-Object -First 1).Trim()

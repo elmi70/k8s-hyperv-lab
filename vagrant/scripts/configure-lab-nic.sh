@@ -6,6 +6,13 @@ set -euo pipefail
 LAB_IP="${1:?usage: configure-lab-nic.sh <ip>}"
 PREFIX=24
 
+# Idempotent: if the address is already configured, do not touch netplan again. `netplan apply`
+# restarts networking and can drop the SSH session Vagrant is using, so avoid it on reruns.
+if ip -4 -o addr show | grep -q " ${LAB_IP}/" && [ -f /etc/netplan/60-k8s-lab.yaml ]; then
+  echo "${LAB_IP}/${PREFIX} already configured; nothing to do."
+  exit 0
+fi
+
 default_nic() { ip -4 route show default | awk '{print $5; exit}'; }
 lab_nic() {
   local def n
