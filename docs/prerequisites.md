@@ -2,7 +2,19 @@
 
 ## Where to clone the repository
 
-Clone to a plain local path such as `C:\src\k8s-hyperv-lab`, **not** into OneDrive or another synced folder. The Packer build writes a multi-gigabyte `.box` and a build disk under `packer\output`, and Vagrant keeps state in `vagrant\.vagrant`; cloud sync can slow or interfere with both. Avoiding spaces in the path also avoids quoting problems in the scripts.
+Clone to a plain local path such as `C:\labs\k8s-hyperv-lab` or `C:\src\k8s-hyperv-lab`, **not** into OneDrive or another synced folder. The Packer build writes a multi-gigabyte `.box` and a build disk under `packer\output`, and Vagrant keeps state in `vagrant\.vagrant`; cloud sync can slow or interfere with both.
+
+**Avoid spaces in the path.** A path such as `C:\Users\you\OneDrive - Company\Desktop\k8s-hyperv-lab` makes `vagrant box add` fail with `bad URI(is not URI?)`, and spaces also cause quoting problems in the scripts. Moving the repository does not move the git-ignored `packer\output\*.box`; rebuild the box or copy it across.
+
+## PowerShell 7 and script execution
+
+Run every script from an **elevated PowerShell 7** window (`pwsh`, run as administrator; the prompt shows `PowerShell 7.x`; check with `$PSVersionTable.PSVersion`). Windows PowerShell 5.1 (`powershell.exe`) has a stricter execution policy and fails with `... is not digitally signed`.
+
+If PowerShell 7 shows a "Security warning: Run only scripts that you trust" prompt, the files carry a download mark. Clear it once after cloning or copying the repository:
+
+```powershell
+Get-ChildItem -Recurse -Filter *.ps1 | Unblock-File
+```
 
 ## Resources
 
@@ -95,6 +107,24 @@ If required:
 sudo apt update
 sudo apt install -y ansible
 ```
+
+### WSL must be able to reach the Hyper-V switches
+
+Ansible runs inside WSL 2, which sits on its own NAT network (for example `172.30.64.0/20`), while the VMs are on the Hyper-V Default Switch (`172.24.x.x`, used for SSH) and `kube-lab-net` (`192.168.77.0/24`). Windows does not forward packets between those switches by default, so the deploy can stop at the Ansible connectivity check with `ssh: connect to host 172.24.x.x port 22: Connection timed out` even though the VMs are running.
+
+On the lab host, enabling IP forwarding on the three `vEthernet` interfaces fixed this. Run once from an elevated PowerShell 7 window after the lab switch exists (`Deploy-K8sLab.ps1` creates it), then re-run the deploy:
+
+```powershell
+Get-NetIPInterface -AddressFamily IPv4 |
+  Where-Object { $_.InterfaceAlias -match 'vEthernet \((WSL|Default Switch|kube-lab-net)' } |
+  Set-NetIPInterface -Forwarding Enabled
+```
+
+The setting may be reset when Windows or WSL restarts; repeat the command if the timeout returns. If forwarding is not enough, WSL's mirrored networking mode (`networkingMode=mirrored` in `%UserProfile%\.wslconfig`) is an alternative that I have not tested with this lab.
+
+### Optional: cap WSL memory
+
+WSL 2 can claim up to half of your RAM while Ansible runs. See "Low-memory laptops" in the README for a `.wslconfig` example.
 
 ## GitHub
 

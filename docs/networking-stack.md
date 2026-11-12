@@ -22,6 +22,8 @@ flowchart TB
 - **Gateway API 1.6.3 Standard CRDs**: API contract used by Traefik.
 - **Traefik Helm chart 42.3.1 / Traefik Proxy 3.7.17**: north-south Gateway API controller.
 
+Traefik is configured by `kubernetes/traefik/values.yaml`. Two settings are specific to chart 42.x: the Service type is set under `service.spec.type` (the chart's values schema rejects `service.type`), and the Gateway listener `port` must match a port declared in the chart's `ports` section, so it is `8000` (the `web` entrypoint). The Service still exposes it as port 80, so clients use `http://<Traefik LoadBalancer IP>/`. Re-check both when you bump `traefik_chart_version`.
+
 The pinned versions live in `ansible/inventory/group_vars/all.yml` (the Traefik Proxy version is the one shipped by the pinned chart). The numbers above describe the current pins; update them when you bump that file.
 
 The Metrics Server lab configuration uses `--kubelet-insecure-tls` because local kubeadm kubelet certificates may not be suitable for Metrics Server verification. This reduces security and is only appropriate for this disposable lab.

@@ -23,12 +23,16 @@ Do not use this image outside a local lab.
 
 The installer reboots into the installed system (no `shutdown:` key in the autoinstall) so Packer can reach it over SSH; Packer powers the VM off itself. `scripts/setup.sh` empties `/etc/machine-id` (each cloned VM generates its own) and trims unused blocks.
 
-## First-build checks
+## Requirements
 
-Vagrant learns a Hyper-V VM's IP address through the Hyper-V KVP daemon. After the first build, boot a VM from the box and confirm it is running:
+Run the build from an elevated PowerShell 7 session. Besides `packer`, you need `oscdimg` (`winget install --id Microsoft.OSCDIMG -e`), which Packer uses to build the autoinstall seed ISO; without it the build fails with `could not find a supported CD ISO creation command`. Keep the repository in a path without spaces. Details and troubleshooting: [Image build](../docs/image-build.md).
+
+## KVP daemon and network config
+
+Packer and Vagrant learn a Hyper-V VM's IP address through the Hyper-V KVP daemon. `autoinstall/user-data` installs `linux-cloud-tools-virtual` for that and also sets DHCP on `e*` NICs. After a build you can confirm the daemon in a VM booted from the box:
 
 ```bash
 systemctl status hv-kvp-daemon     # or: systemctl status hv-kvp-daemon.service
 ```
 
-If it is missing, add `linux-cloud-tools-virtual` and `linux-tools-virtual` (matching the running kernel) to `scripts/setup.sh` and rebuild; otherwise `vagrant up` will wait forever for the guest IP.
+If the IP is never reported, `packer build` waits at `Waiting for SSH to become available...` and `vagrant up` waits for the guest IP.

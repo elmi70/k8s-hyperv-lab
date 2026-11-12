@@ -8,7 +8,7 @@ Run everything from the repository root in an **elevated PowerShell 7** session 
 
 | Step | Script | What it does |
 |---|---|---|
-| 1 | `.\powershell\Test-K8sLabReady.ps1` | Host preflight: `vmms` running and required tools installed (`git`, `packer`, `vagrant`, `kubectl`, `wsl`). Exits 1 if any fail. A missing `gh` or `kube-lab-net` switch only produces a warning (`gh` is needed just for box releases; `Deploy-K8sLab.ps1` creates the switch). It does not check the cluster. |
+| 1 | `.\powershell\Test-K8sLabReady.ps1` | Host preflight: `vmms` running and required tools installed (`git`, `packer`, `vagrant`, `kubectl`, `wsl`). Exits 1 if any fail. A missing `gh`, `oscdimg` or `kube-lab-net` switch only produces a warning (`gh` is needed just for box releases, `oscdimg` just for building the box locally, and `Deploy-K8sLab.ps1` creates the switch). It does not check the cluster or WSL's network access to the VMs. |
 | 2 | Get the box: `packer build -force .` then `vagrant box add ubuntu2604-hyperv ...`, or `gh release download` | Build the Ubuntu 26.04.1 box locally (commands in [Image build](image-build.md)), or download a published one ([GitHub validation and releases](github-releases.md)), then register it with Vagrant. No GitHub access is needed to build. |
 | 2b (optional) | `.\powershell\Publish-K8sBoxRelease.ps1 -Build -Register` | Maintainers only: builds the box, publishes it to a GitHub Release (needs `gh auth login` and write access to the repository) and registers it with Vagrant. |
 | 3 | `.\powershell\Deploy-K8sLab.ps1` | Does everything else in order (below). Add `-StopBeforeInit` to stop before `kubeadm init`. |
@@ -21,9 +21,9 @@ You do not run these yourself, but this is the order they execute in:
 1. `New-K8sLabNetwork.ps1`: creates the `kube-lab-net` switch and NAT (with a subnet-collision preflight).
 2. `vagrant up --provider=hyperv`: creates the three VMs on the Default Switch.
 3. `Add-K8sLabNic.ps1`: adds the second NIC on `kube-lab-net`.
-4. `vagrant provision --provision-with lab-net`: assigns the static `192.168.77.x` addresses.
-5. `New-K8sAnsibleInventory.ps1`: builds the Ansible inventory from `vagrant ssh-config`.
-6. Ansible playbooks, in this order: `preflight`, `prerequisites`, `kubernetes-packages`, `install-node-tools`, `bootstrap-cluster`, `install-cni`, `install-metallb`, `install-metrics-server`, `install-local-path`, `install-traefik`, `validate-cluster`.
+4. `vagrant provision --provision-with lab-net`: assigns the static `192.168.77.x` addresses (idempotent; retried up to three times).
+5. `New-K8sAnsibleInventory.ps1`: builds the Ansible inventory from `vagrant ssh-config` and copies each node's SSH key into WSL with mode 600.
+6. An Ansible connectivity check from WSL (`ansible all -m ping`). If this times out, WSL cannot reach the Hyper-V switches; see [Prerequisites](prerequisites.md#wsl-must-be-able-to-reach-the-hyper-v-switches). Then the Ansible playbooks, in this order: `preflight`, `prerequisites`, `kubernetes-packages`, `install-node-tools`, `bootstrap-cluster`, `install-cni`, `install-metallb`, `install-metrics-server`, `install-local-path`, `install-traefik`, `validate-cluster`.
 7. Copies the kubeconfig to `~/.kube/config`.
 
 ## Day to day

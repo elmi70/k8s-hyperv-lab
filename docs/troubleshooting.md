@@ -6,6 +6,7 @@ Use `Get-Command <tool>` first. For commonly missing tools:
 
 ```powershell
 winget install --id Hashicorp.Packer -e
+winget install --id Microsoft.OSCDIMG -e
 winget install --id Hashicorp.Vagrant -e
 winget install --id GitHub.cli -e
 winget install --id Kubernetes.kubectl -e
@@ -64,6 +65,42 @@ $env:K8S_LAB_BOX = 'my-box-name'
 ## Package or download failures during deployment
 
 The playbooks retry apt and download tasks five times. If a task still fails, check internet access from the nodes (`vagrant ssh control1`, then `curl -I https://pkgs.k8s.io`) and re-run `Deploy-K8sLab.ps1`; the playbooks are safe to re-run.
+
+## `Deploy-K8sLab.ps1` is blocked: "not digitally signed" or a security warning
+
+You are probably in Windows PowerShell 5.1 (`powershell.exe`). Open an elevated **PowerShell 7** window (`pwsh`) instead. If PowerShell 7 shows a "Security warning: Run only scripts that you trust" prompt, run `Get-ChildItem -Recurse -Filter *.ps1 | Unblock-File` once. See [Prerequisites](prerequisites.md#powershell-7-and-script-execution).
+
+## `packer build` fails with `could not find a supported CD ISO creation command`
+
+Install `oscdimg` (`winget install --id Microsoft.OSCDIMG -e`) and open a new terminal. See [Image build](image-build.md#requirements-for-the-build).
+
+## `packer build` waits at `Waiting for SSH to become available...`
+
+Hyper-V never learned the guest IP, or the installed system has no network. The autoinstall installs `linux-cloud-tools-virtual` (Hyper-V KVP daemon) and sets DHCP on `e*` NICs to prevent this; if you changed `packer/autoinstall/user-data`, check both are still there. Open the VM console in Hyper-V Manager and run `ip -br a`. Stop the build with Ctrl+C once; Packer deletes the VM.
+
+## `vagrant box add` fails: `bad URI(is not URI?)` or `Couldn't open file`
+
+`bad URI` means the path contains spaces (for example `OneDrive - Company`); use a path without spaces. `Couldn't open file` means the `.box` is not there: the build did not finish, or the repository was moved (the git-ignored `packer\output` does not move with it).
+
+## `vagrant up` fails: `Unable to allocate ... MB of RAM` (0x800705AA)
+
+Fixed-memory VMs need all their RAM free at boot, and the default is 16 GiB for three VMs. Close memory-heavy apps or shrink the VMs, then recreate them (`Remove-K8sLab.ps1`, then `Deploy-K8sLab.ps1`). Existing VMs keep their old size. See "Low-memory laptops" in the README. The `K8S_LAB_*_MEMORY_MB` variables are read per session unless you set them as user environment variables.
+
+## `vagrant up` says another process is already executing an action
+
+Vagrant locks each machine. A previous run is still finishing or crashed. Wait, or check for leftover `vagrant` and `ruby` processes and stop them.
+
+## The deploy fails at "Failed to configure 192.168.77.x" or "SSH connection was unexpectedly closed"
+
+See [Networking](networking.md): the lab netplan id must sort before the box's catch-all `all-en` rule (`configure-lab-nic.sh` uses `a0-k8slab`), and `netplan apply` can drop the SSH session, so the script is idempotent and the deploy retries. To retry one node by hand: `cd vagrant; vagrant provision <node> --provision-with lab-net`.
+
+## Ansible connectivity check fails: `ssh: connect to host 172.24.x.x port 22: Connection timed out`
+
+The VMs are running but WSL 2 cannot reach the Hyper-V switches. Enable IP forwarding on the `vEthernet` interfaces and re-run the deploy; see [Prerequisites](prerequisites.md#wsl-must-be-able-to-reach-the-hyper-v-switches). The setting can be lost after a restart of Windows or WSL.
+
+## Publishing the box fails: "Box is 2.xx GiB; GitHub Releases allows files under 2 GiB"
+
+The current image is about 2.6 GiB. See [Image build](image-build.md#box-size-and-github-releases).
 
 ## Layered diagnosis
 

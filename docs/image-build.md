@@ -52,3 +52,31 @@ Maintainers can instead build, publish to a GitHub Release and register in one s
 GitHub Releases limits each file to 2 GiB, and the publish script refuses larger boxes.
 
 The Packer build attaches to the Hyper-V `Default Switch` (variable `hyperv_switch_name`) for DHCP and internet during the install. The lab's static network is configured later, at deploy time; see [Networking](networking.md).
+
+## Requirements for the build
+
+- An **elevated PowerShell 7** session with Hyper-V enabled.
+- `packer` and `oscdimg` on `PATH` (`winget install --id Hashicorp.Packer -e` and `winget install --id Microsoft.OSCDIMG -e`). Packer builds the autoinstall seed ISO (`user-data`, `meta-data`, volume label `cidata`) with an external tool, and `oscdimg` is the one it can use on Windows. Without it the build stops after about 30 seconds with `could not find a supported CD ISO creation command`. Open a new terminal after installing so `PATH` updates.
+- The repository in a path without spaces and outside OneDrive (see [Prerequisites](prerequisites.md)).
+
+A successful build takes roughly 7 minutes once the ISO is cached in `packer\packer_cache`.
+
+## What the autoinstall configures
+
+`packer/autoinstall/user-data` installs Ubuntu unattended and sets two things that the build depends on:
+
+- **`linux-cloud-tools-virtual`** (in `packages`): provides the Hyper-V KVP daemon. Packer's `hyperv-iso` builder, and later Vagrant, learn the guest IP through Hyper-V integration services. Without the daemon the VM boots and runs SSH but Hyper-V never reports an IP, and `packer build` waits at `Waiting for SSH to become available...` until the 60-minute timeout.
+- **An explicit `network:` block** that enables DHCP on any NIC named `e*`. The installer boots with `net.ifnames=0` (see `boot_command` in `ubuntu-26.04.pkr.hcl`) but the installed system does not, so a generated config for `eth0` can miss the NIC after the first reboot. This catch-all rule also matches the second NIC added at deploy time; see [Networking](networking.md) for how the static lab address takes precedence.
+
+## Box size and GitHub Releases
+
+The box built from this template is about **2.6 GiB** (2,815,494,777 bytes in the last build). GitHub Releases allows files under 2 GiB, so `Publish-K8sBoxRelease.ps1` currently refuses it. Until the image is slimmed down (for example by purging the unused kernel, headers and ZFS packages the installer leaves behind, which `apt` reports as "no longer required") or hosted elsewhere, share the box through another file host and keep using the local build for your own lab. See [GitHub validation and releases](github-releases.md).
+
+## Troubleshooting the build
+
+| Symptom | Likely cause |
+|---|---|
+| `could not find a supported CD ISO creation command` | `oscdimg` is not installed or not on `PATH`. |
+| Stuck at `Waiting for SSH to become available...` | Guest has no IP or does not report it. Check that `linux-cloud-tools-virtual` is in `user-data`, open the VM console in Hyper-V Manager and look at `ip -br a`. |
+| `vagrant box add` fails with `bad URI(is not URI?)` | The path contains spaces (for example under `OneDrive - Company`). Use a path without spaces. |
+| `vagrant box add` says `Couldn't open file ...` | The `.box` is not at that path; the build did not finish or the repository was moved. |
