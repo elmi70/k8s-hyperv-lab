@@ -19,8 +19,15 @@
           dest: "/tmp/crictl-{{ crictl_version }}-linux-amd64.tar.gz.sha256"
 
     - name: Verify crictl checksum
-      ansible.builtin.shell: >-
-        cd /tmp && sha256sum -c crictl-{{ crictl_version }}-linux-amd64.tar.gz.sha256
+      # The cri-tools .sha256 file holds only the hash (no filename column), which `sha256sum -c`
+      # cannot read on its own, so pair the hash with the archive name before checking.
+      ansible.builtin.shell: |
+        set -o pipefail
+        cd /tmp
+        printf '%s  %s\n' "$(awk '{print $1}' crictl-{{ crictl_version }}-linux-amd64.tar.gz.sha256)" \
+          crictl-{{ crictl_version }}-linux-amd64.tar.gz | sha256sum -c -
+      args:
+        executable: /bin/bash
       changed_when: false
 
     - name: Install crictl
