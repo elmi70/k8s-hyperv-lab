@@ -100,7 +100,7 @@ The VMs are running but WSL 2 cannot reach the Hyper-V switches. `Deploy-K8sLab.
 
 ## Publishing the box fails: "Box is 2.xx GiB; GitHub Releases allows files under 2 GiB"
 
-The first image built was 2.62 GiB (the template has since been trimmed but not re-measured). See [Image build](image-build.md#box-size-and-github-releases).
+The first image built was 2.62 GiB (the latest measured build was 2.32 GiB after the trims, still over the limit). See [Image build](image-build.md#box-size-and-github-releases).
 
 ## Layered diagnosis
 

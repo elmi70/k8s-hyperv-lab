@@ -72,13 +72,19 @@ A successful build takes roughly 7 minutes once the ISO is cached in `packer\pac
 
 GitHub Releases allows files under 2 GiB, and `Publish-K8sBoxRelease.ps1` refuses anything larger. The first build from this template was **2.62 GiB** (2,815,494,777 bytes), over the limit.
 
-To shrink it, `scripts/setup.sh` now runs `apt-get autoremove --purge` (the installer leaves an older kernel, headers, ZFS modules and tools that `apt` reports as "no longer required"), deletes the apt package lists, and the `vagrant` post-processor uses `compression_level = 9`. **I have not rebuilt with these changes, so the new size is unmeasured and may still be over 2 GiB.** After a rebuild, check it:
+Size reductions so far, all in `scripts/setup.sh` and the Packer template:
+
+1. `apt-get autoremove --purge` removes the older kernel, headers, ZFS modules and tools that the installer leaves behind (319 MB freed), the apt package lists are deleted, and the `vagrant` post-processor uses `compression_level = 9`. Measured result: **2.43 GiB**, still over the limit.
+2. `setup.sh` also removes things a disposable Hyper-V lab node does not need and that no playbook uses: snap and `snapd`, `linux-firmware` (Hyper-V uses paravirtual devices; apt installs the tiny `linux-firmware-minimal` in its place and drops the `ubuntu-server-minimal` metapackage) and kdump (`kdump-tools`, `kexec-tools`, `makedumpfile`). It fails the build if the result has no kernel, no initramfs or no `linux-cloud-tools-virtual`. Measured result: **2.32 GiB**, still over the limit.
+3. The log of that build showed 6.4 GB used on `/` but only about 2.7 GB in the listed directories, because `du --max-depth` does not list files. The remainder is most likely the installer's `/swap.img`. Kubernetes needs swap off (`prerequisites.yml` disables it), so `setup.sh` now removes the swap file and its `fstab` entry, and its size report lists individual files so the next reduction is based on data. **This step has not been built yet, so its effect is unmeasured.**
+
+After a rebuild, check the size and the last lines of the `setup.sh` output in the Packer log:
 
 ```powershell
 (Get-Item .\packer\output\ubuntu-26.04.1-hyperv.box).Length / 1GB
 ```
 
-If it is still 2 GiB or more, host the box somewhere other than GitHub Releases (the local build is unaffected) or slim the image further. See [GitHub validation and releases](github-releases.md).
+(On a system with a decimal comma this prints, for example, `2,43`.) If the box is still 2 GiB or more, host it somewhere other than GitHub Releases (the local build is unaffected) or slim the image further. See [GitHub validation and releases](github-releases.md).
 
 ## Troubleshooting the build
 
