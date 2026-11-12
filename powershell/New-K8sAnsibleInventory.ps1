@@ -7,7 +7,8 @@ $root=Split-Path $PSScriptRoot -Parent
 $vagrantDir=Join-Path $root 'vagrant'
 $labIps=@{control1='192.168.77.11';worker1='192.168.77.12';worker2='192.168.77.13'}
 function Convert-ToWslPath([string]$Path, [string]$Distribution) {
-  $result = wsl.exe -d $Distribution -- wslpath -a $Path
+  # wsl.exe passes arguments through a Linux shell, which eats backslashes; use forward slashes.
+  $result = wsl.exe -d $Distribution -- wslpath -a ($Path -replace '\\','/')
   if($LASTEXITCODE -ne 0){throw "Could not convert path for WSL: $Path"}
   return ($result | Select-Object -First 1).Trim()
 }

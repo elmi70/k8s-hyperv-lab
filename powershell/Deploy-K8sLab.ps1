@@ -31,8 +31,11 @@ try {
   }
 } finally { Pop-Location }
 & "$PSScriptRoot\New-K8sAnsibleInventory.ps1" -WslDistribution $WslDistribution
-$wslRoot=(wsl.exe -d $WslDistribution -- wslpath -a $root | Select-Object -First 1).Trim()
-if(-not $wslRoot){throw 'Failed to convert repository path for WSL.'}
+# wsl.exe passes arguments through a Linux shell, which eats backslashes (C:\labs -> C:labs),
+# so hand wslpath a forward-slash path.
+$wslRoot=(wsl.exe -d $WslDistribution -- wslpath -a ($root -replace '\\','/') | Select-Object -First 1)
+if($wslRoot){$wslRoot=$wslRoot.Trim()}
+if(-not $wslRoot -or $wslRoot -notmatch '^/'){throw "Failed to convert repository path for WSL (got '$wslRoot')."}
 $playbooks=@(
   'preflight.yml',
   'prerequisites.yml',
