@@ -4,10 +4,15 @@ providers:
   kubernetesGateway:
     enabled: true
 service:
-  type: LoadBalancer
+  # Chart 42.x only allows Service fields under service.spec (service.type is rejected by the
+  # values schema). MetalLB assigns the external IP to this LoadBalancer Service.
+  spec:
+    type: LoadBalancer
 gateway:
   enabled: true
   listeners:
     web:
-      port: 80
+      # Must match a container port declared under the chart's `ports` (web = 8000). The Service
+      # still exposes it as port 80 (ports.web.exposedPort), so clients use http://<LB-IP>/.
+      port: 8000
       protocol: HTTP
