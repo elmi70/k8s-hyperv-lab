@@ -35,7 +35,10 @@ sudo tee /etc/netplan/60-k8s-lab.yaml >/dev/null <<EOF
 network:
   version: 2
   ethernets:
-    k8slab:
+    # systemd-networkd applies only the first matching .network file, in name order. The box
+    # ships a catch-all DHCP rule (id "all-en", matching e*) that would also match this NIC.
+    # This id must sort before "all-en" so the static lab address wins.
+    a0-k8slab:
       match:
         macaddress: "${MAC}"
       dhcp4: false
